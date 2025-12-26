@@ -19,19 +19,15 @@ const RESPONSE_SCHEMA = {
   required: ["title", "description", "steps", "benefit", "category", "estimatedTime"],
 };
 
-const getApiKey = () => {
-  // البحث عن المفتاح في أكثر من مكان لضمان عمله في Vercel
-  return (window as any).process?.env?.API_KEY || (process as any)?.env?.API_KEY || "";
-};
-
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  const apiKey = getApiKey();
+  // الالتزام التام بالتعليمات البرمجية للنظام
+  const apiKey = process.env.API_KEY;
   
   if (!apiKey) {
     throw new Error("API_KEY_MISSING");
   }
 
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: apiKey });
   
   const categoryNames: Record<string, string> = {
     [CategoryId.HIFZ]: "حفظ آيات جديدة",
@@ -58,10 +54,7 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
       },
     });
 
-    const text = response.text;
-    if (!text) throw new Error("Empty response from AI");
-    
-    return JSON.parse(text) as TeachingIdea;
+    return JSON.parse(response.text || "{}") as TeachingIdea;
   } catch (error: any) {
     console.error("Gemini Error:", error);
     throw error;
