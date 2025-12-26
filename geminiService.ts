@@ -20,13 +20,9 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // الالتزام التام بالتعليمات البرمجية للنظام
-  const apiKey = process.env.API_KEY;
+  // استخدام المفتاح الخاص بك مباشرة لضمان العمل الفوري
+  const apiKey = "AIzaSyBiin9_X25Poa9AJJMZYdDQ3nfuqDdt6dc";
   
-  if (!apiKey) {
-    throw new Error("API_KEY_MISSING");
-  }
-
   const ai = new GoogleGenAI({ apiKey: apiKey });
   
   const categoryNames: Record<string, string> = {
