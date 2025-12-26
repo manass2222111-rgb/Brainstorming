@@ -42,15 +42,11 @@ const App: React.FC = () => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [configError, setConfigError] = useState(false);
 
-  // فحص أولي عند تشغيل التطبيق للتأكد من أن البيئة تعمل
+  // التأكد من أن التطبيق يعمل ولا ينهار
   useEffect(() => {
-    try {
-      const key = process.env.API_KEY;
-      if (!key) {
-        console.warn("API_KEY is not defined in process.env");
-      }
-    } catch (e) {
-      console.error("Environment check failed:", e);
+    const key = (window as any).process?.env?.API_KEY || (process as any)?.env?.API_KEY;
+    if (!key) {
+      console.warn("API Key is missing, the app will show setup instructions if generation is attempted.");
     }
   }, []);
 
@@ -66,10 +62,11 @@ const App: React.FC = () => {
         document.getElementById('result-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     } catch (err: any) {
+      console.error("Generation Error:", err);
       if (err.message === "API_KEY_MISSING") {
         setConfigError(true);
       } else {
-        setError('عذراً، حدث خطأ أثناء الاتصال بالخادم الذكي. يرجى المحاولة لاحقاً.');
+        setError('عذراً، حدث خطأ أثناء الاتصال بالخادم الذكي. يرجى التأكد من مفتاح الـ API في Vercel.');
       }
     } finally {
       setLoading(false);
@@ -84,31 +81,18 @@ const App: React.FC = () => {
     setTimeout(() => setCopySuccess(false), 2000);
   };
 
-  // شاشة خطأ الإعدادات لمنع الشاشة البيضاء
   if (configError) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-6 text-center font-['Tajawal']">
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-6 text-center">
         <div className="max-w-md bg-white p-10 rounded-[2.5rem] shadow-xl border border-stone-100">
           <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <Settings className="text-amber-600 animate-spin-slow" size={40} />
           </div>
           <h1 className="text-2xl font-black text-[#064E3B] mb-4">تنبيه الإعدادات</h1>
-          <p className="text-stone-500 font-bold mb-8 leading-relaxed">
-            يبدو أن مفتاح الـ API لم يتم التعرف عليه من قبل Vercel. 
+          <p className="text-stone-500 font-bold mb-8">
+            لم يتم العثور على مفتاح الـ API. تأكد من إضافته في Vercel باسم <code className="bg-stone-100 px-2 py-1 rounded">API_KEY</code> ثم عمل <code className="bg-stone-100 px-2 py-1 rounded">Redeploy</code>.
           </p>
-          <div className="bg-stone-50 p-4 rounded-2xl text-right text-sm space-y-2 border border-stone-100 mb-8">
-            <p className="font-bold text-stone-700">تأكد من الآتي في إعدادات Vercel:</p>
-            <ul className="list-disc list-inside text-stone-500 space-y-1">
-              <li>اسم المتغير هو <code className="bg-stone-200 px-1 rounded">API_KEY</code></li>
-              <li>قمت بعمل <code className="bg-stone-200 px-1 rounded">Redeploy</code> بعد الحفظ</li>
-            </ul>
-          </div>
-          <button 
-            onClick={() => window.location.reload()}
-            className="w-full py-4 bg-[#064E3B] text-white rounded-2xl font-black shadow-lg"
-          >
-            تحديث الصفحة
-          </button>
+          <button onClick={() => window.location.reload()} className="w-full py-4 bg-[#064E3B] text-white rounded-2xl font-black shadow-lg">إعادة المحاولة</button>
         </div>
       </div>
     );
@@ -116,16 +100,15 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col font-['Tajawal'] bg-[#FAFAF9]">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-200 px-5 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-[#064E3B] p-2.5 rounded-xl shadow-lg shadow-emerald-900/10 rotate-3">
+            <div className="bg-[#064E3B] p-2.5 rounded-xl shadow-lg">
               <BookOpen className="text-[#D4AF37]" size={24} />
             </div>
             <div>
-              <h1 className="text-xl font-black text-[#064E3B] leading-none">مُعين المحفظ</h1>
-              <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mt-1">الذكاء في خدمة القرآن</p>
+              <h1 className="text-xl font-black text-[#064E3B]">مُعين المحفظ</h1>
+              <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">الذكاء في خدمة القرآن</p>
             </div>
           </div>
         </div>
@@ -133,15 +116,12 @@ const App: React.FC = () => {
 
       <main className="flex-grow max-w-4xl w-full mx-auto px-6 py-8">
         <section className="text-center mb-12">
-          <h2 className="text-3xl md:text-5xl font-black text-[#064E3B] mb-6 leading-tight">
-            ابتكر أسلوباً <span className="text-[#B45309]">جديداً</span> في حلقتك
-          </h2>
+          <h2 className="text-3xl md:text-5xl font-black text-[#064E3B] mb-6">ابتكر أسلوباً <span className="text-[#B45309]">جديداً</span> في حلقتك</h2>
           <p className="text-stone-500 text-lg font-medium opacity-80">أفكار تربوية وتعليمية مبتكرة مدعومة بالذكاء الاصطناعي</p>
         </section>
 
-        {/* Level Toggle */}
         <section className="flex justify-center mb-10">
-          <div className="bg-white p-1.5 rounded-[2.5rem] shadow-xl shadow-stone-200/50 flex gap-2 w-full max-w-md border border-stone-100">
+          <div className="bg-white p-1.5 rounded-[2.5rem] shadow-xl flex gap-2 w-full max-w-md border border-stone-100">
             <button
               onClick={() => setStudentLevel(StudentLevel.CHILDREN)}
               className={`flex-grow flex items-center justify-center gap-2 py-4 rounded-[2.2rem] transition-all font-black ${
@@ -161,18 +141,17 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* Categories Grid */}
         <section className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-16">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
               className={`group flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] transition-all border-2 ${
-                selectedCategory === cat.id ? 'bg-white border-[#B45309] shadow-lg -translate-y-1' : 'bg-white border-transparent hover:border-stone-100'
+                selectedCategory === cat.id ? 'bg-white border-[#B45309] shadow-lg' : 'bg-white border-transparent hover:border-stone-100'
               }`}
             >
               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                selectedCategory === cat.id ? 'bg-[#B45309] text-white rotate-6' : 'bg-stone-50 text-stone-300'
+                selectedCategory === cat.id ? 'bg-[#B45309] text-white' : 'bg-stone-50 text-stone-300'
               }`}>
                 {cat.icon}
               </div>
@@ -183,12 +162,11 @@ const App: React.FC = () => {
           ))}
         </section>
 
-        {/* Generate Button */}
         <div className="mb-20">
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className={`w-full py-6 rounded-[2rem] text-xl font-black transition-all transform active:scale-[0.97] group ${
+            className={`w-full py-6 rounded-[2rem] text-xl font-black transition-all transform active:scale-[0.97] ${
               loading ? 'bg-stone-200 text-stone-400 cursor-not-allowed' : 'emerald-gradient text-white shadow-xl shadow-emerald-900/20 hover:shadow-emerald-900/30'
             }`}
           >
@@ -199,7 +177,6 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        {/* Result Area */}
         <div id="result-area" className="scroll-mt-24">
           {error && (
             <div className="bg-red-50 border border-red-100 p-8 rounded-[2.5rem] text-red-800 text-center flex flex-col items-center gap-3">
@@ -211,12 +188,12 @@ const App: React.FC = () => {
           {idea && !loading && (
             <article className="animate-in fade-in slide-in-from-bottom-10 duration-700">
               <div className="bg-white rounded-[3rem] shadow-2xl border border-stone-50 overflow-hidden">
-                <div className="p-10 md:p-16">
+                <div className="p-10 md:p-16 text-right">
                   <div className="flex flex-wrap items-center gap-4 mb-8">
                     <span className="bg-[#B45309]/10 text-[#B45309] px-4 py-1.5 rounded-full text-sm font-black border border-[#B45309]/20 flex items-center gap-2">
                       <Clock size={16} /> {idea.estimatedTime}
                     </span>
-                    <span className="bg-[#064E3B]/10 text-[#064E3B] px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border border-[#064E3B]/20">
+                    <span className="bg-[#064E3B]/10 text-[#064E3B] px-4 py-1.5 rounded-full text-xs font-black border border-[#064E3B]/20">
                       {idea.category}
                     </span>
                   </div>

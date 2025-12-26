@@ -19,13 +19,9 @@ const RESPONSE_SCHEMA = {
   required: ["title", "description", "steps", "benefit", "category", "estimatedTime"],
 };
 
-// وظيفة للحصول على المفتاح بأمان دون تحطيم التطبيق
 const getApiKey = () => {
-  try {
-    return process.env.API_KEY || "";
-  } catch (e) {
-    return "";
-  }
+  // البحث عن المفتاح في أكثر من مكان لضمان عمله في Vercel
+  return (window as any).process?.env?.API_KEY || (process as any)?.env?.API_KEY || "";
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
@@ -62,7 +58,10 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
       },
     });
 
-    return JSON.parse(response.text || "{}") as TeachingIdea;
+    const text = response.text;
+    if (!text) throw new Error("Empty response from AI");
+    
+    return JSON.parse(text) as TeachingIdea;
   } catch (error: any) {
     console.error("Gemini Error:", error);
     throw error;
