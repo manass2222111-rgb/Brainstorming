@@ -19,9 +19,23 @@ const RESPONSE_SCHEMA = {
   required: ["title", "description", "steps", "benefit", "category", "estimatedTime"],
 };
 
+// وظيفة للحصول على المفتاح بأمان دون تحطيم التطبيق
+const getApiKey = () => {
+  try {
+    return process.env.API_KEY || "";
+  } catch (e) {
+    return "";
+  }
+};
+
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // إنشاء المثيل مباشرة قبل الاستخدام لضمان الوصول لمفتاح الـ API المحدث
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getApiKey();
+  
+  if (!apiKey) {
+    throw new Error("API_KEY_MISSING");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   
   const categoryNames: Record<string, string> = {
     [CategoryId.HIFZ]: "حفظ آيات جديدة",
@@ -36,42 +50,21 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
 
   const prompt = `أنت مساعد خبير متخصص في تعليم وتحفيظ القرآن الكريم. 
   المطلوب: توليد أسلوب تعليمي أو تربوي "عملي وفعال" لـ ${isAdult ? "الطلاب الكبار" : "الطلاب الصغار"} في مجال: "${targetCategory}".
-
-  القاعدة الذهبية:
-  - التركيز فقط على "الفهم العام" للمعنى الإجمالي للآيات بما يخدم الحفظ.
-  - تجنب التفاصيل التفسيرية المعقدة.
-  - الهدف الأساسي هو الحفظ الرصين.
-
-  المطلوب في رد الـ JSON:
-  - title: اسم الأسلوب.
-  - description: شرح مختصر جداً للفكرة.
-  - steps: خطوات واضحة (1، 2، 3).
-  - benefit: الثمرة التعليمية.
-  - estimatedTime: الوقت المتوقع.
-
-  أجب بصيغة JSON فقط.`;
+  أجب بصيغة JSON فقط وباللغة العربية.`;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview", // استخدام موديل فلاش لسرعة الاستجابة
+      model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
-        temperature: 0.7,
       },
     });
 
-    if (!response.text) {
-      throw new Error("لم يتم استلام بيانات من المحرك");
-    }
-
-    return JSON.parse(response.text) as TeachingIdea;
+    return JSON.parse(response.text || "{}") as TeachingIdea;
   } catch (error: any) {
-    console.error("Gemini API Error:", error);
-    if (error.message?.includes("API key")) {
-      throw new Error("مفتاح الـ API غير صالح أو غير موجود. يرجى التأكد من إعدادات البيئة.");
-    }
+    console.error("Gemini Error:", error);
     throw error;
   }
 };
