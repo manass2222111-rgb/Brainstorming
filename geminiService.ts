@@ -2,8 +2,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { CategoryId, TeachingIdea, StudentLevel } from "./types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 const RESPONSE_SCHEMA = {
   type: Type.OBJECT,
   properties: {
@@ -22,6 +20,9 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
+  // إنشاء المثيل مباشرة قبل الاستخدام لضمان الوصول لمفتاح الـ API المحدث
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   const categoryNames: Record<string, string> = {
     [CategoryId.HIFZ]: "حفظ آيات جديدة",
     [CategoryId.REVIEW]: "مراجعة وتثبيت القرآن",
@@ -52,7 +53,7 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
+      model: "gemini-3-flash-preview", // استخدام موديل فلاش لسرعة الاستجابة
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -66,8 +67,11 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
     }
 
     return JSON.parse(response.text) as TeachingIdea;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini API Error:", error);
+    if (error.message?.includes("API key")) {
+      throw new Error("مفتاح الـ API غير صالح أو غير موجود. يرجى التأكد من إعدادات البيئة.");
+    }
     throw error;
   }
 };
