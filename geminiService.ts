@@ -16,34 +16,33 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // المحاولة من process.env (Vercel) أو من الـ window إذا تم حقنه يدوياً
+  // استخدام API_KEY من البيئة مباشرة
   const apiKey = process.env.API_KEY;
 
-  if (!apiKey || apiKey === "undefined" || apiKey === "") {
-    console.error("API Key is missing from Environment Variables");
+  if (!apiKey) {
     throw new Error("API_KEY_MISSING");
   }
 
   const ai = new GoogleGenAI({ apiKey });
   
   const categoryNames: Record<string, string> = {
-    [CategoryId.HIFZ]: "تحفيظ جديد",
-    [CategoryId.REVIEW]: "مراجعة وتثبيت",
-    [CategoryId.MOTIVATION]: "تحفيز وتشجيع",
-    [CategoryId.MANAGEMENT]: "ضبط الحلقة",
-    [CategoryId.TAJWEED]: "تجويد وأداء",
+    [CategoryId.HIFZ]: "تحفيظ وحفظ جديد",
+    [CategoryId.REVIEW]: "مراجعة وتثبيت المحفوظ",
+    [CategoryId.MOTIVATION]: "تحفيز وتشجيع الطلاب",
+    [CategoryId.MANAGEMENT]: "ضبط الحلقة وإدارة الوقت",
+    [CategoryId.TAJWEED]: "تطوير الأداء والتجويد",
   };
 
-  const targetCategory = category === CategoryId.ALL ? "أفكار إبداعية منوعة" : categoryNames[category];
-  const levelText = level === StudentLevel.ADULTS ? "للكبار" : "للأطفال";
+  const targetCategory = category === CategoryId.ALL ? "أفكار إبداعية تربوية متنوعة" : categoryNames[category];
+  const levelText = level === StudentLevel.ADULTS ? "للكبار والشباب" : "للأطفال والناشئة";
 
-  const prompt = `أعطني فكرة مهارية تربوية ${levelText} في مجال ${targetCategory} لطلاب حلقات القرآن الكريم. قدم النتيجة بتنسيق JSON فقط حسب المخطط المطلوب.`;
+  const prompt = `أعطني فكرة مهارية إبداعية وعملية ${levelText} في مجال ${targetCategory} داخل حلقات القرآن الكريم. اجعل الخطوات واضحة وسهلة التنفيذ للمحفظ.`;
 
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: prompt,
     config: {
-      systemInstruction: "أنت خبير تربوي متخصص في تطوير حلقات تحفيظ القرآن الكريم. قدم أفكاراً عملية، مبتكرة، ويسيرة التنفيذ.",
+      systemInstruction: "أنت خبير تربوي في حلقات التحفيظ، تقدم أفكاراً ذكية، عصرية، وممتعة تزيد من إقبال الطلاب على القرآن.",
       responseMimeType: "application/json",
       responseSchema: RESPONSE_SCHEMA,
     },
