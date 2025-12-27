@@ -16,9 +16,7 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // محاولة جلب المفتاح من البيئة
-  // ملاحظة: في بيئة المتصفح الصرفة بدون Bundler، قد لا يكون process.env متاحاً
-  // لكننا نلتزم بالتعليمات لاستخدامه
+  // إنشاء مثيل جديد في كل مرة لضمان قراءة المفتاح من process.env.API_KEY المحدث
   const apiKey = process.env.API_KEY;
 
   if (!apiKey || apiKey === "undefined" || apiKey === "") {
@@ -38,7 +36,7 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
   const targetCategory = category === CategoryId.ALL ? "أفكار إبداعية منوعة" : categoryNames[category];
   const levelText = level === StudentLevel.ADULTS ? "للكبار" : "للأطفال";
 
-  const prompt = `أعطني فكرة مهارية تربوية ${levelText} في مجال ${targetCategory} لطلاب حلقات القرآن الكريم. قدم النتيجة بتنسيق JSON فقط.`;
+  const prompt = `أعطني فكرة مهارية تربوية ${levelText} في مجال ${targetCategory} لطلاب حلقات القرآن الكريم. قدم النتيجة بتنسيق JSON فقط حسب المخطط المطلوب.`;
 
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
@@ -50,5 +48,6 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
     },
   });
 
+  if (!response.text) throw new Error("EMPTY_RESPONSE");
   return JSON.parse(response.text) as TeachingIdea;
 };

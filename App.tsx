@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   RefreshCw, 
@@ -14,7 +14,9 @@ import {
   User,
   Clock,
   Lightbulb,
-  AlertCircle
+  AlertCircle,
+  Key,
+  ExternalLink
 } from 'lucide-react';
 import { CategoryId, TeachingIdea, Category, StudentLevel } from './types';
 import { generateIdea } from './geminiService';
@@ -34,6 +36,27 @@ const App: React.FC = () => {
   const [studentLevel, setStudentLevel] = useState<StudentLevel>(StudentLevel.CHILDREN);
   const [idea, setIdea] = useState<TeachingIdea | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hasKey, setHasKey] = useState<boolean>(true);
+
+  useEffect(() => {
+    checkKeyStatus();
+  }, []);
+
+  const checkKeyStatus = async () => {
+    if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
+      const selected = await window.aistudio.hasSelectedApiKey();
+      setHasKey(selected);
+    }
+  };
+
+  const handleOpenKeyDialog = async () => {
+    if (window.aistudio && typeof window.aistudio.openSelectKey === 'function') {
+      await window.aistudio.openSelectKey();
+      // نفترض النجاح حسب التعليمات
+      setHasKey(true);
+      setError(null);
+    }
+  };
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -46,11 +69,44 @@ const App: React.FC = () => {
       }, 100);
     } catch (err: any) {
       console.error("Error generating idea:", err);
-      setError(err.message || "حدث خطأ غير متوقع");
+      if (err.message === "API_KEY_MISSING") {
+        setHasKey(false);
+      } else {
+        setError(err.message || "حدث خطأ غير متوقع");
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  if (!hasKey) {
+    return (
+      <div className="min-h-screen bg-[#FDFDFB] flex flex-col items-center justify-center p-6 text-center" dir="rtl">
+        <div className="bg-white p-12 rounded-[3rem] shadow-2xl border border-slate-100 max-w-md w-full">
+          <div className="bg-orange-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 text-[#B45309]">
+            <Key size={40} />
+          </div>
+          <h2 className="text-3xl font-black text-[#064E3B] mb-4 text-center">تفعيل المفتاح</h2>
+          <p className="text-slate-500 font-bold mb-8 leading-relaxed">
+            للبدء باستخدام مُعين المحفظ، يرجى تفعيل مفتاح التشغيل الخاص بك. تأكد من استخدام مشروع مدفوع.
+          </p>
+          <button 
+            onClick={handleOpenKeyDialog}
+            className="w-full bg-[#064E3B] text-white py-6 rounded-2xl font-black text-xl flex items-center justify-center gap-3 hover:bg-[#053a2b] transition-all"
+          >
+            تفعيل المفتاح الآن
+          </button>
+          <a 
+            href="https://ai.google.dev/gemini-api/docs/billing" 
+            target="_blank" 
+            className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[#B45309] hover:underline"
+          >
+            حول فوترة المفتاح <ExternalLink size={14} />
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FDFDFB] text-[#1E293B] font-['Tajawal'] pb-20" dir="rtl">
@@ -70,10 +126,17 @@ const App: React.FC = () => {
               <p className="text-[10px] md:text-sm text-[#B45309] font-bold mt-1 uppercase tracking-widest leading-none">بنك الأفكار المهارية</p>
             </div>
           </div>
+          <button 
+            onClick={handleOpenKeyDialog}
+            className="p-2 text-slate-400 hover:text-[#B45309] transition-colors"
+            title="تغيير المفتاح"
+          >
+            <Key size={20} />
+          </button>
         </header>
       </div>
 
-      <main className="max-w-5xl mx-auto px-6">
+      <main className="max-w-6xl mx-auto px-6">
         {/* Student Level Switcher */}
         <div className="flex justify-center mb-10">
           <div className="bg-white rounded-full p-1 flex shadow-sm border border-slate-100 w-full max-w-sm relative">
@@ -101,7 +164,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Categories Grid - 3 Columns on md and up */}
+        {/* Categories Grid - 3 Columns on md+ */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 mb-12">
           {CATEGORIES.map((cat) => (
             <button
@@ -115,7 +178,7 @@ const App: React.FC = () => {
             >
               <div className={`transition-all duration-300 p-4 rounded-2xl flex items-center justify-center ${
                 selectedCategory === cat.id 
-                  ? 'bg-[#B45309] text-white scale-110' 
+                  ? 'bg-[#B45309] text-white scale-110 shadow-lg' 
                   : 'bg-slate-50 text-slate-300'
               }`}>
                 {cat.icon}
@@ -149,13 +212,9 @@ const App: React.FC = () => {
 
         {/* Error Handling */}
         {error && (
-          <div className="bg-red-50 border-2 border-red-100 p-8 rounded-[2.5rem] text-center mb-12 animate-in fade-in zoom-in">
+          <div className="bg-red-50 border-2 border-red-100 p-8 rounded-[2.5rem] text-center mb-12">
             <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
-            <p className="text-xl font-bold text-red-800">
-              {error === "API_KEY_MISSING" 
-                ? "عذراً، لم يتم العثور على مفتاح التشغيل. تأكد من إضافته في إعدادات المنصة." 
-                : "حدث خطأ أثناء جلب الفكرة، يرجى المحاولة مرة أخرى."}
-            </p>
+            <p className="text-xl font-bold text-red-800">حدث خطأ: {error}</p>
           </div>
         )}
 
