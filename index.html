@@ -9,14 +9,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <script>
-      // تأمين الكائن process لتجنب انهيار التطبيق في المتصفح
-      window.process = {
-        env: {
-          API_KEY: "" // سيتم استبدال هذا أو قراءته برمجياً
-        }
-      };
-    </script>
     <style>
       body {
         font-family: 'Tajawal', sans-serif;
@@ -24,7 +16,6 @@
         color: #1e293b;
         -webkit-tap-highlight-color: transparent;
       }
-      .no-scrollbar::-webkit-scrollbar { display: none; }
       @keyframes float {
         0% { transform: translateY(0px); }
         50% { transform: translateY(-10px); }

@@ -14,8 +14,7 @@ import {
   User,
   Clock,
   Lightbulb,
-  AlertTriangle,
-  ExternalLink
+  AlertCircle
 } from 'lucide-react';
 import { CategoryId, TeachingIdea, Category, StudentLevel } from './types';
 import { generateIdea } from './geminiService';
@@ -35,11 +34,6 @@ const App: React.FC = () => {
   const [studentLevel, setStudentLevel] = useState<StudentLevel>(StudentLevel.CHILDREN);
   const [idea, setIdea] = useState<TeachingIdea | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -52,7 +46,11 @@ const App: React.FC = () => {
       }, 100);
     } catch (err: any) {
       console.error(err);
-      setError(err.message === "API_KEY_MISSING" ? "MISSING" : "ERROR");
+      if (err.message === "API_KEY_MISSING") {
+        setError("المفتاح (API_KEY) غير متاح في بيئة التشغيل. يرجى التأكد من إضافة المفتاح في إعدادات Vercel ثم عمل Redeploy.");
+      } else {
+        setError("حدث خطأ أثناء الاتصال بالذكاء الاصطناعي. يرجى المحاولة مرة أخرى.");
+      }
     } finally {
       setLoading(false);
     }
@@ -60,7 +58,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FDFDFB] text-[#1E293B] font-['Tajawal'] pb-20" dir="rtl">
-      {/* Header - Identical to Screenshot */}
+      {/* Header */}
       <div className="bg-white shadow-sm border-b border-slate-100 mb-8 sticky top-0 z-50">
         <header className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4 flex-row-reverse">
@@ -80,7 +78,7 @@ const App: React.FC = () => {
       </div>
 
       <main className="max-w-5xl mx-auto px-6">
-        {/* Level Switcher */}
+        {/* Student Level Switcher */}
         <div className="flex justify-center mb-12">
           <div className="bg-white rounded-full p-1.5 flex shadow-inner border border-slate-100 w-full max-w-sm relative">
             <button
@@ -107,7 +105,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Categories Grid - 3 Columns (exactly as your first requirement) */}
+        {/* Categories Grid - 3 Columns Always on Desktop */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
           {CATEGORIES.map((cat) => (
             <button
@@ -133,15 +131,15 @@ const App: React.FC = () => {
           ))}
         </div>
 
-        {/* Main Action Button */}
+        {/* Generate Button */}
         <div className="flex justify-center mb-16">
           <button
             onClick={handleGenerate}
             disabled={loading}
             className={`w-full py-7 rounded-[2.2rem] text-2xl md:text-4xl font-black flex items-center justify-center gap-4 transition-all duration-500 shadow-2xl active:scale-[0.97] ${
               loading 
-                ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
-                : 'bg-[#064E3B] text-white hover:bg-[#053a2b] hover:shadow-emerald-900/30'
+                ? 'bg-slate-100 text-slate-300' 
+                : 'bg-[#064E3B] text-white hover:bg-[#053a2b]'
             }`}
           >
             {loading ? <RefreshCw className="animate-spin" size={36} /> : (
@@ -153,81 +151,69 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        {/* Error Handling UI */}
-        {error === "MISSING" && (
-          <div className="bg-red-50 border-2 border-red-100 p-12 rounded-[3.5rem] text-center mb-12 shadow-xl animate-in zoom-in duration-300">
-            <div className="flex justify-center mb-6 text-red-500">
-              <AlertTriangle size={64} />
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-50 border-2 border-red-100 p-10 rounded-[3rem] text-center mb-12 animate-in fade-in zoom-in">
+            <div className="flex justify-center mb-4 text-red-500">
+              <AlertCircle size={48} />
             </div>
-            <h3 className="text-3xl font-black text-red-800 mb-6">المفتاح غير نشط في Vercel</h3>
-            <div className="text-red-700 font-bold space-y-4 text-xl leading-relaxed">
-              <p>لتفعيل التطبيق، يرجى القيام بالتالي:</p>
-              <ol className="list-decimal list-inside text-right max-w-md mx-auto space-y-2">
-                <li>افتح إعدادات Vercel.</li>
-                <li>تأكد أن اسم المفتاح هو <code className="bg-red-100 px-2 rounded">API_KEY</code>.</li>
-                <li>اضغط <code className="bg-red-100 px-2 rounded font-black">Redeploy</code> من قائمة Deployments.</li>
-              </ol>
-            </div>
+            <p className="text-xl font-bold text-red-800 leading-relaxed">{error}</p>
           </div>
         )}
 
-        {/* Results Card */}
+        {/* Result Area */}
         <div id="result-section">
           {idea && !loading && (
-            <div className="bg-white rounded-[4rem] shadow-2xl overflow-hidden border border-slate-50 animate-in fade-in slide-in-from-bottom-20 duration-1000">
+            <div className="bg-white rounded-[4rem] shadow-2xl overflow-hidden border border-slate-50 animate-in slide-in-from-bottom-20 duration-1000">
               <div className="bg-[#064E3B] p-12 md:p-20 text-white relative">
-                <div className="flex justify-between items-center mb-10">
-                  <span className="bg-white/10 px-6 py-2 rounded-full font-black border border-white/20 uppercase text-sm tracking-widest">
-                    {idea.category}
-                  </span>
-                  <div className="flex items-center gap-2 text-sm font-bold bg-black/20 px-4 py-2 rounded-full">
-                    <Clock size={18} /> {idea.estimatedTime}
-                  </div>
+                <div className="flex justify-between items-center mb-10 text-sm font-bold opacity-80">
+                  <span className="bg-white/10 px-4 py-1 rounded-full">{idea.category}</span>
+                  <div className="flex items-center gap-2"><Clock size={18} /> {idea.estimatedTime}</div>
                 </div>
-                <h3 className="text-5xl md:text-7xl font-black leading-tight mb-6">{idea.title}</h3>
+                <h3 className="text-4xl md:text-6xl font-black leading-tight mb-6">{idea.title}</h3>
                 <div className="absolute -bottom-8 right-12 bg-[#B45309] p-6 rounded-3xl shadow-2xl ring-[12px] ring-white floating">
                   <Lightbulb className="text-white" size={48} />
                 </div>
               </div>
 
               <div className="p-12 md:p-20 pt-24 text-right">
-                <div className="bg-slate-50 p-12 rounded-[3rem] border border-slate-100 mb-14 text-center">
-                  <p className="text-2xl md:text-4xl text-slate-600 font-medium italic leading-relaxed">"{idea.description}"</p>
+                <div className="bg-slate-50 p-10 rounded-[3rem] border border-slate-100 mb-14">
+                  <p className="text-2xl md:text-3xl text-slate-600 font-medium italic leading-relaxed">"{idea.description}"</p>
                 </div>
 
                 <div className="space-y-12 mb-16">
-                  <div className="flex items-center flex-row-reverse gap-4">
-                    <div className="w-3 h-12 bg-[#B45309] rounded-full"></div>
-                    <h4 className="font-black text-[#064E3B] text-3xl md:text-5xl">خطوات التنفيذ</h4>
-                  </div>
-                  <div className="grid gap-8">
+                  <h4 className="font-black text-[#064E3B] text-3xl md:text-4xl flex items-center gap-3 flex-row-reverse">
+                    <span className="w-2 h-10 bg-[#B45309] rounded-full"></span>
+                    خطوات التنفيذ
+                  </h4>
+                  <div className="grid gap-6">
                     {idea.steps.map((step, i) => (
-                      <div key={i} className="flex flex-row-reverse gap-8 items-start group">
-                        <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-[#064E3B] text-white font-black text-3xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <div key={i} className="flex flex-row-reverse gap-6 items-start">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#064E3B] text-white font-black text-xl flex items-center justify-center shadow-lg">
                           {i + 1}
                         </div>
-                        <p className="text-slate-500 font-bold text-2xl md:text-3xl pt-2 leading-relaxed flex-1">{step}</p>
+                        <p className="text-slate-500 font-bold text-xl md:text-2xl pt-2 leading-relaxed flex-1">{step}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-orange-50 to-white rounded-[3rem] p-12 border border-orange-100 mb-16 text-center">
-                  <div className="flex items-center justify-center gap-4 mb-6">
-                    <Trophy size={40} className="text-[#B45309]" />
-                    <h4 className="text-[#B45309] font-black text-lg uppercase tracking-[0.3em]">الفائدة التربوية</h4>
+                <div className="bg-gradient-to-br from-orange-50 to-white rounded-[3rem] p-10 border border-orange-100 mb-16 text-center">
+                  <div className="flex items-center justify-center gap-3 mb-4 text-[#B45309]">
+                    <Trophy size={32} />
+                    <h4 className="font-black text-lg uppercase tracking-widest">الثمرة المرجوة</h4>
                   </div>
-                  <p className="text-[#064E3B] font-black text-3xl md:text-5xl leading-tight">{idea.benefit}</p>
+                  <p className="text-[#064E3B] font-black text-2xl md:text-4xl">{idea.benefit}</p>
                 </div>
 
                 <button
                   onClick={() => {
-                    const text = `💡 فكرة من مُعين المحفظ: *${idea.title}*\n\n🌟 الفائدة: ${idea.benefit}`;
+                    const text = `💡 فكرة من مُعين المحفظ: *${idea.title}*\n\n🌟 الثمرة: ${idea.benefit}`;
                     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                   }}
-                  className="w-full bg-[#064E3B] text-white py-8 rounded-[2.5rem] font-black text-2xl md:text-3xl flex items-center justify-center gap-4 hover:bg-[#053a2b] transition-all shadow-2xl active:scale-95"
+                  className="w-full bg-[#064E3B] text-white py-8 rounded-[2.5rem] font-black text-2xl flex items-center justify-center gap-4 hover:bg-[#053a2b] transition-all shadow-2xl"
                 >
-                  <Share2 size={36} /> مشاركة الفكرة
+                  <Share2 size={28} /> مشاركة الفكرة
                 </button>
               </div>
             </div>
@@ -236,7 +222,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="mt-24 text-center opacity-30 px-6">
-        <p className="text-sm font-black text-slate-400 uppercase tracking-[0.5em] mb-2">مُعين المحفظ • بنك الأفكار المهارية</p>
+        <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-2">مُعين المحفظ • بنك الأفكار المهارية</p>
         <p className="text-xs font-bold text-slate-300">نعتز بخدمة أهل القرآن الكريم • ٢٠٢٥</p>
       </footer>
     </div>
