@@ -1,4 +1,8 @@
+// استبدل تعريف المفتاح القديم بهذا السطر
+const apiKey = import.meta.env.VITE_API_KEY;
 
+// تأكد من تمرير هذا المفتاح عند إنشاء الاتصال
+// const genAI = new GoogleGenerativeAI(apiKey);
 import { GoogleGenAI, Type } from "@google/genai";
 import { CategoryId, TeachingIdea, StudentLevel } from "./types";
 
