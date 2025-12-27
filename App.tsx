@@ -52,7 +52,11 @@ const App: React.FC = () => {
       }, 100);
     } catch (err: any) {
       console.error(err);
-      setError('حدث خطأ أثناء استحضار الفكرة. يرجى التأكد من اتصال الإنترنت وإعداد المفتاح بشكل صحيح.');
+      if (err.message === "API_KEY_MISSING") {
+        setError('خطأ: لم يتم العثور على API_KEY. يرجى إضافته في إعدادات Vercel ثم إعادة عمل Deploy.');
+      } else {
+        setError('حدث خطأ أثناء استحضار الفكرة. تأكد من أن مفتاح API في Vercel مفعل وصحيح.');
+      }
     } finally {
       setLoading(false);
     }
@@ -68,7 +72,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FDFDFB] text-[#1E293B] font-['Tajawal'] pb-10 selection:bg-[#064E3B] selection:text-white" dir="rtl">
-      {/* Header Section */}
+      {/* Header - Fixed & Styled */}
       <div className="bg-white shadow-sm border-b border-slate-100 mb-8">
         <header className={`max-w-6xl mx-auto px-6 py-5 flex items-center justify-start gap-4 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
           <div className="bg-white p-1 rounded-2xl shadow-sm border border-slate-50 overflow-hidden w-16 h-16 md:w-20 md:h-20 flex-shrink-0">
@@ -79,16 +83,16 @@ const App: React.FC = () => {
             />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-2xl md:text-4xl font-[900] text-[#064E3B] leading-none">مُعين المحفظ</h1>
+            <h1 className="text-2xl md:text-4xl font-[900] text-[#064E3B] leading-none tracking-tight">مُعين المحفظ</h1>
             <p className="text-xs md:text-lg text-[#B45309] font-bold mt-1">بنك الأفكار المهارية</p>
           </div>
         </header>
       </div>
 
       <main className="max-w-4xl mx-auto px-6">
-        {/* Hero Title */}
+        {/* Title */}
         <section className={`text-center mb-10 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <h2 className="text-[1.8rem] xs:text-[2.2rem] sm:text-5xl md:text-7xl font-[900] text-[#064E3B] leading-tight">
+          <h2 className="text-[2rem] sm:text-5xl md:text-7xl font-[900] text-[#064E3B] leading-tight">
             ابتكر أسلوباً <span className="text-[#B45309]">جديداً</span> في حلقتك
           </h2>
         </section>
@@ -120,7 +124,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Categories Grid - 3 Columns */}
+        {/* Categories Grid - 3 Columns (The requested shape) */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-5 mb-12">
           {CATEGORIES.map((cat) => (
             <button
@@ -134,7 +138,7 @@ const App: React.FC = () => {
             >
               <div className={`transition-all duration-500 p-4 rounded-2xl flex items-center justify-center ${
                 selectedCategory === cat.id 
-                  ? 'bg-[#B45309] text-white scale-110' 
+                  ? 'bg-[#B45309] text-white scale-110 shadow-md' 
                   : 'bg-slate-50 text-slate-300'
               }`}>
                 {cat.icon}
@@ -146,7 +150,7 @@ const App: React.FC = () => {
           ))}
         </div>
 
-        {/* Generate Button */}
+        {/* Main Action Button */}
         <div className="flex justify-center mb-16">
           <button
             onClick={handleGenerate}
@@ -154,7 +158,7 @@ const App: React.FC = () => {
             className={`w-full py-6 rounded-[2rem] text-2xl md:text-3xl font-black flex items-center justify-center gap-4 transition-all duration-500 shadow-2xl active:scale-[0.98] ${
               loading 
                 ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
-                : 'bg-[#064E3B] text-white hover:shadow-emerald-900/20'
+                : 'bg-[#064E3B] text-white hover:bg-[#053a2b]'
             }`}
           >
             {loading ? (
@@ -168,23 +172,17 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        {/* Error Section */}
+        {/* Error Feedback */}
         {error && (
-          <div className="bg-red-50 border border-red-100 text-red-700 p-8 rounded-[2rem] mb-12 text-center">
+          <div className="bg-red-50 border border-red-100 text-red-700 p-8 rounded-[2rem] mb-12 text-center animate-pulse">
             <p className="font-bold text-lg">{error}</p>
-            <div className="flex justify-center mt-3">
-              <button onClick={() => window.location.reload()} className="p-2 rounded-full bg-red-100 text-red-600 hover:rotate-180 transition-transform duration-500">
-                <RefreshCw size={24} />
-              </button>
-            </div>
           </div>
         )}
 
-        {/* Results Area */}
+        {/* Result Card */}
         <div id="result-section">
           {idea && !loading && (
             <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-50 animate-in fade-in slide-in-from-bottom-10 duration-700">
-              {/* Card Header */}
               <div className="bg-[#064E3B] p-10 md:p-16 text-white relative">
                 <div className="flex justify-between items-center mb-8">
                   <span className="text-xs md:text-sm bg-white/10 px-6 py-2 rounded-full font-black border border-white/20 uppercase tracking-widest">
@@ -200,7 +198,6 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* Card Content */}
               <div className="p-10 md:p-16 pt-16">
                 <div className="bg-slate-50/80 p-10 rounded-[2.5rem] border border-slate-100 mb-12 text-center">
                   <p className="text-xl md:text-3xl text-slate-600 font-medium italic leading-relaxed">
