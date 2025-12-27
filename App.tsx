@@ -51,6 +51,7 @@ const App: React.FC = () => {
         resultSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 150);
     } catch (err: any) {
+      console.error(err);
       setError('حدث خطأ أثناء استحضار الفكرة. يرجى المحاولة مرة أخرى.');
     } finally {
       setLoading(false);
@@ -121,8 +122,8 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Categories Grid - Elevated slightly with -translate-y-1 */}
-        <div className={`grid grid-cols-2 md:grid-cols-3 gap-4 mb-6 transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-[-4px]' : 'opacity-0 translate-y-8'}`}>
+        {/* Categories Grid - Raised slightly more as requested */}
+        <div className={`grid grid-cols-2 md:grid-cols-3 gap-4 mb-6 transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-[-6px]' : 'opacity-0 translate-y-8'}`}>
           {CATEGORIES.map((cat, index) => (
             <button
               key={cat.id}
@@ -147,8 +148,8 @@ const App: React.FC = () => {
           ))}
         </div>
 
-        {/* Prominent CTA Button - Elevated slightly */}
-        <div className="relative group -translate-y-1">
+        {/* Prominent CTA Button - Raised slightly more as requested */}
+        <div className="relative group -translate-y-2">
           <button
             onClick={handleGenerate}
             disabled={loading}
@@ -173,6 +174,7 @@ const App: React.FC = () => {
           {error && (
             <div className="bg-red-50 text-red-700 p-8 rounded-3xl text-center font-bold border border-red-100 shadow-sm">
               {error}
+              <p className="text-xs mt-2 opacity-50 font-medium">تأكد من إعداد مفتاح API بشكل صحيح</p>
             </div>
           )}
 
@@ -205,7 +207,7 @@ const App: React.FC = () => {
                 <div className="space-y-8 mb-12">
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-8 bg-[#B45309] rounded-full"></div>
-                    <h4 className="font-black text-[#064E3B] text-2xl md:text-3xl">خطة التنفيذ</h4>
+                    <h4 className="font-black text-[#064E3B] text-2xl md:text-3xl">خطة التنفيذ المهاري</h4>
                   </div>
                   <div className="grid gap-6">
                     {idea.steps.map((step, i) => (
@@ -222,7 +224,7 @@ const App: React.FC = () => {
                 <div className="bg-gradient-to-br from-orange-50 to-white rounded-[2.5rem] p-8 border border-orange-100 mb-12 relative overflow-hidden">
                   <div className="flex items-center gap-3 mb-4">
                     <Trophy size={28} className="text-[#B45309]" />
-                    <h4 className="text-[#B45309] font-black text-sm uppercase tracking-wider">الثمرة المتوقعة</h4>
+                    <h4 className="text-[#B45309] font-black text-sm uppercase tracking-wider">الثمرة التعليمية</h4>
                   </div>
                   <p className="text-[#064E3B] font-black text-2xl md:text-4xl leading-tight">
                     {idea.benefit}
@@ -232,12 +234,12 @@ const App: React.FC = () => {
                 <div className="flex flex-col md:flex-row gap-4">
                   <button
                     onClick={() => {
-                      const text = `💡 فكرة من مُعين المحفظ: *${idea.title}*\n\n${idea.description}\n\n🌟 الفائدة: ${idea.benefit}`;
+                      const text = `💡 فكرة من مُعين المحفظ: *${idea.title}*\n\n${idea.description}\n\n🌟 الإنجاز: ${idea.benefit}`;
                       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                     }}
                     className="flex-[2] bg-[#064E3B] text-white py-5 rounded-2xl font-black text-lg md:text-2xl flex items-center justify-center gap-3 hover:bg-[#053a2b] transition-all shadow-lg active:scale-95"
                   >
-                    <Share2 size={24} /> مشاركة عبر واتساب
+                    <Share2 size={24} /> مشاركة الفكرة
                   </button>
                   <button
                     onClick={handleCopy}
@@ -255,7 +257,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="mt-16 text-center opacity-30 px-6">
-        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.4em] mb-1">مُعين المحفظ • بنك الأفكار</p>
+        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.4em] mb-1">مُعين المحفظ • بنك الأفكار المهارية</p>
         <p className="text-[10px] font-bold text-slate-300">نعتز بخدمة أهل القرآن الكريم • ٢٠٢٥</p>
       </footer>
     </div>
