@@ -47,7 +47,7 @@ const App: React.FC = () => {
     } catch (err: any) {
       console.error("Error generating idea:", err);
       if (err.message === "API_KEY_MISSING") {
-        setError("مفتاح التشغيل غير مبرمج في إعدادات المنصة (Environment Variables).");
+        setError("عذراً، لم يتم العثور على مفتاح التشغيل. تأكد من إضافته في إعدادات Vercel باسم API_KEY.");
       } else {
         setError("حدث خطأ أثناء الاتصال بالذكاء الاصطناعي. يرجى المحاولة مرة أخرى.");
       }
@@ -105,26 +105,26 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Categories Grid - Forced 3 Columns on Medium+ screens */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 mb-12">
+        {/* Categories Grid - Forced 3 columns on desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 mb-12">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`flex flex-col items-center justify-center gap-4 p-8 md:p-12 rounded-[3rem] bg-white transition-all duration-300 border-2 active:scale-95 shadow-sm ${
+              className={`flex flex-col items-center justify-center gap-3 p-6 md:p-10 rounded-[2.5rem] bg-white transition-all duration-300 border-2 active:scale-95 shadow-sm ${
                 selectedCategory === cat.id 
-                  ? 'border-[#B45309] shadow-xl -translate-y-2' 
+                  ? 'border-[#B45309] shadow-xl -translate-y-1' 
                   : 'border-transparent hover:border-slate-100'
               }`}
             >
-              <div className={`transition-all duration-300 p-5 rounded-2xl flex items-center justify-center ${
+              <div className={`transition-all duration-300 p-4 rounded-2xl flex items-center justify-center ${
                 selectedCategory === cat.id 
                   ? 'bg-[#B45309] text-white scale-110 shadow-lg' 
                   : 'bg-slate-50 text-slate-300'
               }`}>
                 {cat.icon}
               </div>
-              <span className={`text-lg md:text-2xl font-black ${selectedCategory === cat.id ? 'text-[#064E3B]' : 'text-slate-400'}`}>
+              <span className={`text-base md:text-xl font-black ${selectedCategory === cat.id ? 'text-[#064E3B]' : 'text-slate-400'}`}>
                 {cat.label}
               </span>
             </button>
@@ -136,7 +136,7 @@ const App: React.FC = () => {
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className={`w-full py-7 md:py-10 rounded-[3rem] text-2xl md:text-4xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl active:scale-[0.98] ${
+            className={`w-full py-6 md:py-9 rounded-[2.5rem] text-2xl md:text-4xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl active:scale-[0.98] ${
               loading 
                 ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
                 : 'bg-[#064E3B] text-white hover:bg-[#053a2b]'
@@ -153,7 +153,7 @@ const App: React.FC = () => {
 
         {/* Error Handling */}
         {error && (
-          <div className="bg-red-50 border-2 border-red-100 p-8 rounded-[2.5rem] text-center mb-12 animate-in fade-in">
+          <div className="bg-red-50 border-2 border-red-100 p-8 rounded-[2.5rem] text-center mb-12">
             <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
             <p className="text-xl font-bold text-red-800">{error}</p>
           </div>
