@@ -20,7 +20,7 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // Always use direct initialization with named parameter for API key
+  // التأكد من تهيئة الذكاء الاصطناعي داخل الدالة لضمان قراءة أحدث مفتاح بيئة
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const categoryNames: Record<string, string> = {
@@ -31,26 +31,19 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
     [CategoryId.TAJWEED]: "تعلم أحكام التجويد والأداء الصوتي",
   };
 
-  const targetCategory = category === CategoryId.ALL ? "فكرة مهارية في التحفيظ والتجويد" : categoryNames[category];
+  const targetCategory = category === CategoryId.ALL ? "فكرة مهارية في الحفظ والتجويد" : categoryNames[category];
   const isAdult = level === StudentLevel.ADULTS;
 
-  const systemInstruction = `أنت مساعد خبير متخصص في "مهارات تحفيظ القرآن الكريم وتجويده".
-مهمتك ابتكار أساليب عملية تركز حصراً على:
-1. الحفظ السريع والإتقان.
-2. ربط الآيات والمقاطع ذهنيّاً.
-3. التجويد العملي والأداء الصوتي.
-4. تثبيت المتشابهات.
-
-الضوابط:
+  const systemInstruction = `أنت مساعد خبير متخصص حصرياً في "مهارات تحفيظ القرآن الكريم وتجويده".
+مهمتك ابتكار أساليب عملية تركز حصراً على: (الحفظ، الربط، الإتقان، التجويد).
+الضوابط الصارمة:
 - الأدوات: (أوراق، أقلام، سبورة، هواتف ذكية) فقط.
-- لا تفاسير عميقة، لا وعظ، لا دروس أخلاقية.
-- الفكرة يجب أن تكون مبتكرة، سهلة التطبيق، ومناسبة للفئة العمرية.`;
+- يُمنع التفسير العميق، الوعظ، أو دروس الأخلاق.
+- الفكرة مهارية بحتة، سهلة التطبيق، ومبتكرة جداً.`;
 
-  const prompt = `أعطني فكرة إبداعية لـ ${isAdult ? "الكبار" : "الأطفال"} في مجال: ${targetCategory}. 
-يجب أن تكون الاستجابة بصيغة JSON فقط.`;
+  const prompt = `توليد فكرة لـ ${isAdult ? "طلاب كبار" : "أطفال صغار"} في مجال: "${targetCategory}". الاستجابة JSON فقط.`;
 
   try {
-    // Correct way to call generateContent with model and config
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
@@ -62,13 +55,11 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
       },
     });
 
-    // Access .text property directly (not a method call)
-    const resultText = response.text;
-    if (!resultText) throw new Error("EMPTY_RESPONSE");
-    
-    return JSON.parse(resultText) as TeachingIdea;
+    const text = response.text;
+    if (!text) throw new Error("EMPTY_RESPONSE");
+    return JSON.parse(text) as TeachingIdea;
   } catch (error: any) {
-    console.error("Gemini Error:", error);
+    console.error("Gemini API Error:", error);
     throw error;
   }
 };
