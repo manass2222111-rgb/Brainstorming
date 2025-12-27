@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, RefreshCw, Share2, Filter, Trophy, Brain, Users, 
-  Book, Wind, Baby, User, Clock, Lightbulb, AlertTriangle, CheckCircle 
+  Book, Wind, Baby, User, Clock, Lightbulb, AlertCircle, CheckCircle, ChevronDown
 } from 'lucide-react';
 import { CategoryId, TeachingIdea, Category, StudentLevel } from './types';
 import { generateIdea } from './geminiService';
@@ -21,7 +21,7 @@ const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>(CategoryId.ALL);
   const [studentLevel, setStudentLevel] = useState<StudentLevel>(StudentLevel.CHILDREN);
   const [idea, setIdea] = useState<TeachingIdea | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{message: string, type: 'key' | 'general'} | null>(null);
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -29,12 +29,15 @@ const App: React.FC = () => {
     try {
       const result = await generateIdea(selectedCategory, studentLevel);
       setIdea(result);
-      document.getElementById('result')?.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        document.getElementById('result-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     } catch (err: any) {
+      console.error(err);
       if (err.message === "API_KEY_MISSING") {
-        setError("مفتاح API غير مفعّل. يرجى التأكد من إضافة API_KEY في إعدادات Vercel.");
+        setError({ message: "مفتاح الـ API مفقود في إعدادات Vercel. يرجى إضافة API_KEY والضغط على Redeploy.", type: 'key' });
       } else {
-        setError("حدث خطأ أثناء الاتصال. يرجى المحاولة مرة أخرى.");
+        setError({ message: "حدث خطأ غير متوقع. تأكد من اتصال الإنترنت وصلاحية المفتاح.", type: 'general' });
       }
     } finally {
       setLoading(false);
@@ -42,124 +45,154 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] font-['Tajawal'] antialiased text-slate-900 pb-20" dir="rtl">
-      {/* Header */}
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4 shadow-sm">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
+    <div className="min-h-screen bg-[#FDFDFB] text-[#1E293B] font-['Tajawal'] antialiased" dir="rtl">
+      {/* Navbar */}
+      <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100 shadow-sm">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="bg-[#064E3B] p-2 rounded-xl shadow-md">
+            <div className="bg-[#064E3B] p-2 rounded-xl shadow-lg rotate-3">
               <img src="https://www.awqaf.gov.ae/assets/mediakit/AwqafLogoIcon.png" className="w-8 h-8 invert" alt="Logo" />
             </div>
-            <h1 className="text-xl font-extrabold text-[#064E3B]">مُعين المحفظ</h1>
+            <div>
+              <h1 className="text-xl font-black text-[#064E3B] leading-none">مُعين المحفظ</h1>
+              <span className="text-[9px] font-bold text-amber-600 uppercase tracking-widest">Innovation in Quran Teaching</span>
+            </div>
           </div>
-          <div className="hidden md:block text-[10px] font-bold text-slate-400 tracking-widest uppercase">AI-Powered Teaching Assistant</div>
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto px-6 pt-12">
-        {/* Selector */}
-        <div className="flex justify-center mb-12">
-          <div className="bg-slate-200 p-1 rounded-full flex w-full max-w-xs shadow-inner relative">
+      <main className="max-w-6xl mx-auto px-6 py-12">
+        {/* Level Toggle */}
+        <div className="flex justify-center mb-16">
+          <div className="bg-slate-100 p-1.5 rounded-full flex w-full max-w-sm shadow-inner relative">
             <button 
               onClick={() => setStudentLevel(StudentLevel.CHILDREN)}
-              className={`flex-1 py-3 rounded-full text-sm font-bold z-10 transition-colors ${studentLevel === StudentLevel.CHILDREN ? 'text-white' : 'text-slate-500'}`}
-            >الأطفال</button>
+              className={`flex-1 py-4 rounded-full text-base font-black z-10 transition-all duration-300 flex items-center justify-center gap-2 ${studentLevel === StudentLevel.CHILDREN ? 'text-white' : 'text-slate-400'}`}
+            >
+              <Baby size={18} /> للأطفال
+            </button>
             <button 
               onClick={() => setStudentLevel(StudentLevel.ADULTS)}
-              className={`flex-1 py-3 rounded-full text-sm font-bold z-10 transition-colors ${studentLevel === StudentLevel.ADULTS ? 'text-white' : 'text-slate-500'}`}
-            >الكبار</button>
-            <div className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#064E3B] rounded-full transition-all duration-300 shadow-md ${studentLevel === StudentLevel.CHILDREN ? 'right-1' : 'right-[50%]'}`} />
+              className={`flex-1 py-4 rounded-full text-base font-black z-10 transition-all duration-300 flex items-center justify-center gap-2 ${studentLevel === StudentLevel.ADULTS ? 'text-white' : 'text-slate-400'}`}
+            >
+              <User size={18} /> للكبار
+            </button>
+            <div className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-[#064E3B] rounded-full transition-all duration-500 shadow-xl ${studentLevel === StudentLevel.CHILDREN ? 'right-1.5' : 'right-[50%]'}`} />
           </div>
         </div>
 
-        {/* 3-Column Grid */}
+        {/* Categories Grid - Responsive 1 to 3 columns */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`p-8 rounded-[2.5rem] bg-white border-2 transition-all duration-300 text-center flex flex-col items-center gap-4 group ${
-                selectedCategory === cat.id ? 'border-[#B45309] shadow-xl scale-[1.02]' : 'border-transparent hover:border-slate-200 shadow-sm'
+              className={`p-10 rounded-[3rem] glass-card border-2 transition-all duration-500 flex flex-col items-center gap-5 group relative overflow-hidden ${
+                selectedCategory === cat.id 
+                ? 'border-[#B45309] shadow-2xl scale-[1.03] ring-4 ring-amber-50' 
+                : 'border-transparent hover:border-slate-200 shadow-sm'
               }`}
             >
-              <div className={`p-5 rounded-2xl transition-colors ${selectedCategory === cat.id ? 'bg-[#B45309] text-white' : 'bg-slate-50 text-slate-300 group-hover:text-[#B45309]'}`}>
+              <div className={`p-6 rounded-2xl transition-all duration-500 ${selectedCategory === cat.id ? 'bg-[#B45309] text-white rotate-6 scale-110' : 'bg-slate-50 text-slate-300 group-hover:bg-amber-50 group-hover:text-amber-400'}`}>
                 {cat.icon}
               </div>
-              <span className={`text-xl font-bold ${selectedCategory === cat.id ? 'text-[#064E3B]' : 'text-slate-400'}`}>{cat.label}</span>
+              <span className={`text-2xl font-black ${selectedCategory === cat.id ? 'text-[#064E3B]' : 'text-slate-400'}`}>{cat.label}</span>
+              {selectedCategory === cat.id && <div className="absolute top-4 left-4 w-3 h-3 bg-amber-500 rounded-full animate-ping" />}
             </button>
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="flex flex-col items-center gap-6">
+        {/* Action Section */}
+        <div className="flex flex-col items-center gap-8 mb-20">
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className={`px-12 py-6 rounded-full text-xl font-black flex items-center gap-3 transition-all shadow-2xl ${
-              loading ? 'bg-slate-200 text-slate-400 scale-95' : 'bg-[#064E3B] text-white hover:bg-[#043d2e] hover:-translate-y-1'
+            className={`group px-16 py-8 rounded-[2.5rem] text-2xl font-black flex items-center gap-4 transition-all duration-500 shadow-2xl relative overflow-hidden ${
+              loading 
+                ? 'bg-slate-100 text-slate-300 scale-95' 
+                : 'bg-[#064E3B] text-white hover:bg-[#043d2e] hover:-translate-y-1'
             }`}
           >
-            {loading ? <RefreshCw className="animate-spin" /> : <Sparkles className="text-yellow-400" />}
-            {loading ? 'جاري التفكير...' : 'توليد فكرة إبداعية'}
+            {loading ? <RefreshCw className="animate-spin" size={32} /> : <Sparkles className="text-amber-400 group-hover:rotate-12 transition-transform" size={32} />}
+            {loading ? 'جاري استحضار الفكرة...' : 'توليد فكرة إبداعية'}
           </button>
 
           {error && (
-            <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 text-red-700 font-bold animate-bounce">
-              <AlertTriangle size={20} />
-              {error}
+            <div className={`max-w-xl w-full p-6 rounded-3xl border-2 flex items-start gap-4 animate-in slide-in-from-top-4 duration-500 ${error.type === 'key' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+              <AlertCircle size={24} className="flex-shrink-0 mt-1" />
+              <div>
+                <p className="font-black text-lg mb-1">تنبيه تقني</p>
+                <p className="font-bold opacity-80 leading-relaxed">{error.message}</p>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Result */}
-        <div id="result" className="mt-20">
+        {/* Result Area */}
+        <div id="result-area" className="scroll-mt-32">
           {idea && !loading && (
-            <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in slide-in-from-bottom-10 duration-700">
-              <div className="bg-[#064E3B] p-10 md:p-16 text-white text-center relative">
-                <div className="bg-white/10 backdrop-blur-md px-4 py-1 rounded-full text-[10px] inline-block mb-4 border border-white/20">{idea.category}</div>
-                <h2 className="text-3xl md:text-5xl font-black mb-4 leading-tight">{idea.title}</h2>
-                <div className="flex justify-center items-center gap-2 opacity-70 text-sm font-bold">
-                  <Clock size={16} /> {idea.estimatedTime}
+            <div className="bg-white rounded-[4rem] shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-700">
+              {/* Card Header */}
+              <div className="bg-gradient-to-br from-[#064E3B] to-[#043d2e] p-12 md:p-20 text-white text-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                <div className="bg-white/10 backdrop-blur-md px-6 py-2 rounded-full text-xs font-black inline-block mb-6 border border-white/20">
+                  {idea.category}
                 </div>
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-[#B45309] p-5 rounded-2xl shadow-xl floating">
-                  <Lightbulb className="text-white" size={32} />
+                <h2 className="text-4xl md:text-6xl font-black mb-6 leading-[1.2]">{idea.title}</h2>
+                <div className="flex justify-center items-center gap-3 opacity-80 text-lg font-bold">
+                  <Clock size={22} className="text-amber-400" /> {idea.estimatedTime}
+                </div>
+                
+                {/* Floating Icon */}
+                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-[#B45309] p-8 rounded-[2.5rem] shadow-2xl ring-[12px] ring-white floating">
+                  <Lightbulb className="text-white" size={48} />
                 </div>
               </div>
               
-              <div className="p-10 md:p-20 pt-16">
-                <div className="text-center mb-12">
-                  <p className="text-xl md:text-2xl text-slate-600 font-medium leading-relaxed italic">"{idea.description}"</p>
+              <div className="p-12 md:p-24 pt-20">
+                {/* Description */}
+                <div className="bg-amber-50/50 p-10 md:p-14 rounded-[3rem] border border-amber-100 mb-20 text-center shadow-inner">
+                  <p className="text-2xl md:text-3xl text-slate-700 font-bold leading-relaxed italic">"{idea.description}"</p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-12">
-                  <div className="space-y-6">
-                    <h3 className="text-xl font-black text-[#064E3B] flex items-center gap-2 border-r-4 border-[#B45309] pr-3">خطة التنفيذ:</h3>
-                    <div className="space-y-4">
+                <div className="grid lg:grid-cols-2 gap-16">
+                  {/* Steps */}
+                  <div className="space-y-10">
+                    <h3 className="text-3xl font-black text-[#064E3B] flex items-center gap-4">
+                      <div className="w-2 h-10 bg-[#B45309] rounded-full"></div>
+                      خطوات التنفيذ
+                    </h3>
+                    <div className="space-y-6">
                       {idea.steps.map((step, i) => (
-                        <div key={i} className="flex gap-4 items-start">
-                          <span className="w-8 h-8 rounded-lg bg-emerald-50 text-[#064E3B] font-bold flex items-center justify-center flex-shrink-0">{i+1}</span>
-                          <p className="font-bold text-slate-700 leading-relaxed">{step}</p>
+                        <div key={i} className="flex gap-6 items-start group">
+                          <div className="w-12 h-12 rounded-2xl bg-slate-50 text-[#B45309] font-black text-xl flex items-center justify-center flex-shrink-0 shadow-sm border border-slate-100 group-hover:bg-[#B45309] group-hover:text-white transition-all duration-300">
+                            {i + 1}
+                          </div>
+                          <p className="font-bold text-slate-600 text-xl leading-relaxed pt-2">{step}</p>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 self-start">
-                    <h3 className="text-xl font-black text-[#064E3B] mb-4 flex items-center gap-2">
-                      <CheckCircle size={20} className="text-[#B45309]" />
-                      الهدف والنتيجة:
-                    </h3>
-                    <p className="text-lg font-bold text-slate-600 leading-relaxed">{idea.benefit}</p>
+
+                  {/* Benefit */}
+                  <div className="bg-[#F1F5F9] p-12 rounded-[3.5rem] border border-slate-200 self-start shadow-xl shadow-slate-100/50">
+                    <div className="w-16 h-16 bg-[#064E3B] rounded-2xl flex items-center justify-center mb-8 shadow-lg">
+                      <Trophy className="text-amber-400" size={32} />
+                    </div>
+                    <h3 className="text-2xl font-black text-[#064E3B] mb-6">الثمرة المرجوة</h3>
+                    <p className="text-xl font-bold text-slate-600 leading-relaxed">{idea.benefit}</p>
                   </div>
                 </div>
 
+                {/* Share Button */}
                 <button 
                   onClick={() => {
-                    const msg = `💡 فكرة إبداعية للحلقة: *${idea.title}*\n\n🌟 الأثر: ${idea.benefit}\n\nتوليد عبر: مُعين المحفظ الذكي.`;
+                    const msg = `💡 استلهمت فكرة إبداعية للحلقة: *${idea.title}*\n\n🌟 الأثر: ${idea.benefit}\n\nتوليد عبر تطبيق: مُعين المحفظ الذكي.`;
                     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                   }}
-                  className="mt-16 w-full py-6 rounded-2xl bg-[#25D366] text-white font-black text-xl flex items-center justify-center gap-3 hover:opacity-90 transition-opacity shadow-lg"
+                  className="mt-24 w-full py-8 rounded-[2.5rem] bg-[#25D366] text-white font-black text-2xl flex items-center justify-center gap-4 hover:bg-[#1fb355] transition-all shadow-2xl active:scale-95"
                 >
-                  <Share2 /> شاركها عبر واتساب
+                  <Share2 size={32} /> شارك الفائدة مع زملائك المعلمين
                 </button>
               </div>
             </div>
@@ -167,8 +200,8 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      <footer className="mt-40 pb-20 text-center opacity-30 pointer-events-none">
-        <p className="text-[10px] font-black uppercase tracking-[1em]">مُعين المحفظ • ذكاء اصطناعي قرآني • ٢٠٢٥</p>
+      <footer className="mt-40 pb-20 text-center opacity-40">
+        <p className="text-xs font-black uppercase tracking-[0.8em] text-slate-400">مُعين المحفظ • ذكاء اصطناعي قرآني • ٢٠٢٥</p>
       </footer>
     </div>
   );
