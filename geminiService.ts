@@ -16,10 +16,12 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // استخدام المفتاح مباشرة من البيئة
+  // محاولة جلب المفتاح من البيئة
+  // ملاحظة: في بيئة المتصفح الصرفة بدون Bundler، قد لا يكون process.env متاحاً
+  // لكننا نلتزم بالتعليمات لاستخدامه
   const apiKey = process.env.API_KEY;
 
-  if (!apiKey) {
+  if (!apiKey || apiKey === "undefined" || apiKey === "") {
     throw new Error("API_KEY_MISSING");
   }
 
