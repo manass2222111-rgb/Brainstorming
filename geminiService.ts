@@ -2,6 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { CategoryId, TeachingIdea, StudentLevel } from "./types";
 
+// تعريف الهيكل المتوقع بدقة لضمان استقرار الاستجابة
 const RESPONSE_SCHEMA = {
   type: Type.OBJECT,
   properties: {
@@ -20,7 +21,7 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // التأكد من تهيئة الذكاء الاصطناعي داخل الدالة لضمان قراءة أحدث مفتاح بيئة
+  // تهيئة مباشرة للمفتاح من البيئة لضمان الوصول إليه في Vercel
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const categoryNames: Record<string, string> = {
@@ -31,22 +32,22 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
     [CategoryId.TAJWEED]: "تعلم أحكام التجويد والأداء الصوتي",
   };
 
-  const targetCategory = category === CategoryId.ALL ? "فكرة مهارية في الحفظ والتجويد" : categoryNames[category];
+  const targetCategory = category === CategoryId.ALL ? "فكرة مهارية متقدمة في التحفيظ والتجويد" : categoryNames[category];
   const isAdult = level === StudentLevel.ADULTS;
 
-  const systemInstruction = `أنت مساعد خبير متخصص حصرياً في "مهارات تحفيظ القرآن الكريم وتجويده".
-مهمتك ابتكار أساليب عملية تركز حصراً على: (الحفظ، الربط، الإتقان، التجويد).
-الضوابط الصارمة:
-- الأدوات: (أوراق، أقلام، سبورة، هواتف ذكية) فقط.
-- يُمنع التفسير العميق، الوعظ، أو دروس الأخلاق.
-- الفكرة مهارية بحتة، سهلة التطبيق، ومبتكرة جداً.`;
+  const systemInstruction = `أنت مساعد خبير متخصص في "مهارات تحفيظ القرآن الكريم وتجويده".
+مهمتك ابتكار أساليب عملية تركز حصراً على الجوانب المهارية (الحفظ، الإتقان، التجويد، المراجعة).
+الضوابط:
+- الأدوات المسموحة: (أوراق، أقلام، سبورة، هواتف ذكية).
+- يمنع التفسير، الوعظ، أو القصص الأخلاقية.
+- الفكرة يجب أن تكون مهارية، مبتكرة، وسهلة التطبيق الفوري.`;
 
-  const prompt = `توليد فكرة لـ ${isAdult ? "طلاب كبار" : "أطفال صغار"} في مجال: "${targetCategory}". الاستجابة JSON فقط.`;
+  const prompt = `المطلوب: توليد فكرة عملية ومبتكرة لـ ${isAdult ? "طلاب كبار" : "أطفال صغار"} في مجال: "${targetCategory}".`;
 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: prompt,
+      contents: [{ parts: [{ text: prompt }] }],
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
@@ -55,11 +56,13 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
       },
     });
 
+    // الوصول المباشر للنص كخاصية وليس كدالة
     const text = response.text;
-    if (!text) throw new Error("EMPTY_RESPONSE");
+    if (!text) throw new Error("استجابة فارغة من الموديل");
+    
     return JSON.parse(text) as TeachingIdea;
   } catch (error: any) {
-    console.error("Gemini API Error:", error);
+    console.error("Gemini API Request Failed:", error);
     throw error;
   }
 };
