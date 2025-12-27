@@ -5,25 +5,26 @@ import { CategoryId, TeachingIdea, StudentLevel } from "./types";
 const RESPONSE_SCHEMA = {
   type: Type.OBJECT,
   properties: {
-    title: { type: Type.STRING, description: "عنوان مبتكر وجذاب للأسلوب" },
-    description: { type: Type.STRING, description: "شرح بسيط للفكرة بلهجة محببة" },
+    title: { type: Type.STRING, description: "عنوان إبداعي قصير" },
+    description: { type: Type.STRING, description: "وصف الأسلوب باختصار" },
     steps: {
       type: Type.ARRAY,
       items: { type: Type.STRING },
-      description: "خطوات تنفيذ عملية وسهلة"
+      description: "3 خطوات عملية للتنفيذ"
     },
-    benefit: { type: Type.STRING, description: "الأثر الملموس على الطالب" },
-    category: { type: Type.STRING, description: "الفئة المستهدفة" },
-    estimatedTime: { type: Type.STRING, description: "الزمن التقريبي للتنفيذ" }
+    benefit: { type: Type.STRING, description: "الفائدة التربوية أو المهارية" },
+    category: { type: Type.STRING, description: "تصنيف الفكرة" },
+    estimatedTime: { type: Type.STRING, description: "الوقت المستغرق (مثلاً: 10 دقائق)" }
   },
   required: ["title", "description", "steps", "benefit", "category", "estimatedTime"],
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
+  // جلب المفتاح حصرياً من process.env.API_KEY كما تتطلب القواعد
   const apiKey = process.env.API_KEY;
   
-  if (!apiKey) {
-    throw new Error("API_KEY_MISSING");
+  if (!apiKey || apiKey.length < 5) {
+    throw new Error("API_KEY_NOT_FOUND");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -36,11 +37,11 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
     [CategoryId.TAJWEED]: "تجويد وأداء",
   };
 
-  const targetCategory = category === CategoryId.ALL ? "فكرة مهارية في تحفيظ القرآن" : categoryNames[category];
+  const targetCategory = category === CategoryId.ALL ? "مهارات تحفيظ وتجويد عامة" : categoryNames[category];
   const levelText = level === StudentLevel.ADULTS ? "للكبار" : "للأطفال";
 
-  const systemInstruction = `أنت خبير في مهارات تحفيظ القرآن الكريم. تولد أفكاراً مهارية عملية (حفظ، مراجعة، تجويد) فقط. لا وعظ ولا تفاسير. JSON فقط.`;
-  const prompt = `أعطني فكرة إبداعية ${levelText} في مجال: ${targetCategory}.`;
+  const systemInstruction = `أنت خبير في مهارات تحفيظ القرآن الكريم. قدم أفكاراً مهارية عملية حصراً. لا وعظ ولا تفسير. استجب بتنسيق JSON فقط.`;
+  const prompt = `ابتكر فكرة مهارية ${levelText} في مجال ${targetCategory}.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -54,10 +55,10 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
     });
 
     const text = response.text;
-    if (!text) throw new Error("EMPTY_RESPONSE");
+    if (!text) throw new Error("استجابة فارغة");
     return JSON.parse(text) as TeachingIdea;
   } catch (error: any) {
-    console.error("Critical Gemini Error:", error);
+    console.error("Gemini Error:", error);
     throw error;
   }
 };
