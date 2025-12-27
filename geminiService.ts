@@ -16,11 +16,11 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // استخدام المفتاح من متغيرات البيئة كما هو مطلوب
-  const apiKey = process.env.API_KEY;
+  // محاولة الحصول على المفتاح بأكثر من طريقة لضمان العمل في بيئة المتصفح
+  const apiKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
 
-  if (!apiKey || apiKey.trim() === "") {
-    console.error("Critical Error: process.env.API_KEY is undefined or empty.");
+  if (!apiKey || apiKey === 'undefined' || apiKey.trim() === "") {
+    console.error("Critical: API_KEY is missing from environment variables.");
     throw new Error("API_KEY_MISSING");
   }
 
@@ -38,24 +38,25 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
     const targetCategory = category === CategoryId.ALL ? "أفكار إبداعية تربوية شاملة لطلاب القرآن" : categoryNames[category];
     const levelText = level === StudentLevel.ADULTS ? "للكبار والشباب" : "للأطفال والناشئة";
 
-    const prompt = `أعطني فكرة مهارية إبداعية وعملية ${levelText} في مجال ${targetCategory} داخل حلقات القرآن الكريم. اجعل الفكرة مدهشة، مبتكرة جداً، سهلة التطبيق بدون تكاليف، وتترك أثراً تربوياً عميقاً.`;
+    const prompt = `أعطني فكرة مهارية إبداعية وعملية ${levelText} في مجال ${targetCategory} داخل حلقات القرآن الكريم. اجعل الفكرة مدهشة ومبتكرة، سهلة التطبيق بدون ميزانية، وتترك أثراً تربوياً عميقاً.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
-        systemInstruction: "أنت خبير تربوي متخصص في ابتكار أساليب تعليمية لحلقات القرآن الكريم. تقدم أفكاراً مذهلة وجذابة بأسلوب فصيح ومحبب.",
+        systemInstruction: "أنت خبير تربوي متخصص في حلقات تحفيظ القرآن الكريم. تقدم أفكاراً ذكية وجذابة بأسلوب فصيح ومؤثر.",
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
+        thinkingConfig: { thinkingBudget: 0 } // تعطيل التفكير لسرعة الاستجابة كما هو مطلوب للمهام البسيطة
       },
     });
 
     const resultText = response.text;
-    if (!resultText) throw new Error("Empty response from Gemini");
+    if (!resultText) throw new Error("Empty response from AI");
     
     return JSON.parse(resultText) as TeachingIdea;
   } catch (error: any) {
-    console.error("Gemini API Invocation Failure:", error);
+    console.error("Gemini API Error:", error);
     throw error;
   }
 };
