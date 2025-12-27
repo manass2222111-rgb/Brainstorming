@@ -16,16 +16,16 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // تتبع حالة المفتاح
-  const envKey = process.env.API_KEY;
-  
-  if (!envKey || envKey.length < 5) {
-    console.error("Diagnostic: API_KEY is missing or invalid in environment.");
-    throw new Error("ENV_KEY_MISSING");
+  // استخدام المفتاح من متغيرات البيئة كما هو مطلوب
+  const apiKey = process.env.API_KEY;
+
+  if (!apiKey || apiKey.trim() === "") {
+    console.error("Critical Error: process.env.API_KEY is undefined or empty.");
+    throw new Error("API_KEY_MISSING");
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: envKey });
+    const ai = new GoogleGenAI({ apiKey });
     
     const categoryNames: Record<string, string> = {
       [CategoryId.HIFZ]: "تحفيظ وحفظ جديد بأساليب غير تقليدية",
@@ -35,25 +35,27 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
       [CategoryId.TAJWEED]: "تطوير الأداء والتجويد بمتعة وبساطة",
     };
 
-    const targetCategory = category === CategoryId.ALL ? "أفكار إبداعية تربوية شاملة" : categoryNames[category];
+    const targetCategory = category === CategoryId.ALL ? "أفكار إبداعية تربوية شاملة لطلاب القرآن" : categoryNames[category];
     const levelText = level === StudentLevel.ADULTS ? "للكبار والشباب" : "للأطفال والناشئة";
 
-    const prompt = `أعطني فكرة مهارية إبداعية وعملية ${levelText} في مجال ${targetCategory} داخل حلقات القرآن الكريم. اجعل الفكرة مدهشة، سهلة التطبيق، وتترك أثراً عميقاً في نفوس الطلاب.`;
+    const prompt = `أعطني فكرة مهارية إبداعية وعملية ${levelText} في مجال ${targetCategory} داخل حلقات القرآن الكريم. اجعل الفكرة مدهشة، مبتكرة جداً، سهلة التطبيق بدون تكاليف، وتترك أثراً تربوياً عميقاً.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
-        systemInstruction: "أنت خبير تربوي عالمي متخصص في حلقات تحفيظ القرآن الكريم. تقدم أفكاراً خارج الصندوق وتستخدم لغة عربية فصيحة وجذابة.",
+        systemInstruction: "أنت خبير تربوي متخصص في ابتكار أساليب تعليمية لحلقات القرآن الكريم. تقدم أفكاراً مذهلة وجذابة بأسلوب فصيح ومحبب.",
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
       },
     });
 
-    if (!response.text) throw new Error("API_RESPONSE_EMPTY");
-    return JSON.parse(response.text) as TeachingIdea;
+    const resultText = response.text;
+    if (!resultText) throw new Error("Empty response from Gemini");
+    
+    return JSON.parse(resultText) as TeachingIdea;
   } catch (error: any) {
-    console.error("Gemini Execution Error:", error);
+    console.error("Gemini API Invocation Failure:", error);
     throw error;
   }
 };
