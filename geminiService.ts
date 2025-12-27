@@ -16,7 +16,6 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // استخدام API_KEY من البيئة مباشرة
   const apiKey = process.env.API_KEY;
 
   if (!apiKey) {
@@ -26,23 +25,23 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
   const ai = new GoogleGenAI({ apiKey });
   
   const categoryNames: Record<string, string> = {
-    [CategoryId.HIFZ]: "تحفيظ وحفظ جديد",
-    [CategoryId.REVIEW]: "مراجعة وتثبيت المحفوظ",
-    [CategoryId.MOTIVATION]: "تحفيز وتشجيع الطلاب",
-    [CategoryId.MANAGEMENT]: "ضبط الحلقة وإدارة الوقت",
-    [CategoryId.TAJWEED]: "تطوير الأداء والتجويد",
+    [CategoryId.HIFZ]: "تحفيظ وحفظ جديد بأساليب غير تقليدية",
+    [CategoryId.REVIEW]: "مراجعة وتثبيت المحفوظ بطرق تفاعلية",
+    [CategoryId.MOTIVATION]: "تحفيز وتشجيع الطلاب وكسر الروتين",
+    [CategoryId.MANAGEMENT]: "ضبط الحلقة وإدارة الوقت بذكاء",
+    [CategoryId.TAJWEED]: "تطوير الأداء والتجويد بمتعة وبساطة",
   };
 
-  const targetCategory = category === CategoryId.ALL ? "أفكار إبداعية تربوية متنوعة" : categoryNames[category];
+  const targetCategory = category === CategoryId.ALL ? "أفكار إبداعية تربوية شاملة" : categoryNames[category];
   const levelText = level === StudentLevel.ADULTS ? "للكبار والشباب" : "للأطفال والناشئة";
 
-  const prompt = `أعطني فكرة مهارية إبداعية وعملية ${levelText} في مجال ${targetCategory} داخل حلقات القرآن الكريم. اجعل الخطوات واضحة وسهلة التنفيذ للمحفظ.`;
+  const prompt = `أعطني فكرة مهارية إبداعية وعملية ${levelText} في مجال ${targetCategory} داخل حلقات القرآن الكريم. اجعل الفكرة مدهشة، سهلة التطبيق، وتترك أثراً عميقاً في نفوس الطلاب.`;
 
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: prompt,
     config: {
-      systemInstruction: "أنت خبير تربوي في حلقات التحفيظ، تقدم أفكاراً ذكية، عصرية، وممتعة تزيد من إقبال الطلاب على القرآن.",
+      systemInstruction: "أنت خبير تربوي عالمي متخصص في حلقات تحفيظ القرآن الكريم. تقدم أفكاراً خارج الصندوق، تجمع بين الأصالة والتقنيات الحديثة، وتجعل الحلقة تجربة ممتعة لا تُنسى.",
       responseMimeType: "application/json",
       responseSchema: RESPONSE_SCHEMA,
     },
