@@ -14,8 +14,7 @@ import {
   User,
   Clock,
   Lightbulb,
-  AlertCircle,
-  ExternalLink
+  AlertCircle
 } from 'lucide-react';
 import { CategoryId, TeachingIdea, Category, StudentLevel } from './types';
 import { generateIdea } from './geminiService';
@@ -46,12 +45,8 @@ const App: React.FC = () => {
         document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     } catch (err: any) {
-      console.error("Connection Error:", err);
-      if (err.message === "API_KEY_MISSING") {
-        setError("API_KEY_MISSING");
-      } else {
-        setError("CONNECTION_ERROR");
-      }
+      console.error("Error generating idea:", err);
+      setError(err.message || "حدث خطأ غير متوقع");
     } finally {
       setLoading(false);
     }
@@ -106,8 +101,8 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Categories Grid - Force 3 Columns on Desktop */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-12">
+        {/* Categories Grid - 3 Columns on md and up */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 mb-12">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
@@ -115,17 +110,17 @@ const App: React.FC = () => {
               className={`flex flex-col items-center justify-center gap-3 p-6 md:p-10 rounded-[2.5rem] bg-white transition-all duration-300 border-2 active:scale-95 shadow-sm ${
                 selectedCategory === cat.id 
                   ? 'border-[#B45309] shadow-xl -translate-y-1' 
-                  : 'border-transparent hover:border-slate-100 hover:shadow-md'
+                  : 'border-transparent hover:border-slate-100'
               }`}
             >
               <div className={`transition-all duration-300 p-4 rounded-2xl flex items-center justify-center ${
                 selectedCategory === cat.id 
-                  ? 'bg-[#B45309] text-white scale-110 shadow-lg' 
+                  ? 'bg-[#B45309] text-white scale-110' 
                   : 'bg-slate-50 text-slate-300'
               }`}>
                 {cat.icon}
               </div>
-              <span className={`text-base md:text-xl font-black transition-colors ${selectedCategory === cat.id ? 'text-[#064E3B]' : 'text-slate-400'}`}>
+              <span className={`text-base md:text-xl font-black ${selectedCategory === cat.id ? 'text-[#064E3B]' : 'text-slate-400'}`}>
                 {cat.label}
               </span>
             </button>
@@ -137,7 +132,7 @@ const App: React.FC = () => {
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className={`w-full py-6 md:py-8 rounded-[2.5rem] text-2xl md:text-4xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl active:scale-[0.98] ${
+            className={`w-full py-6 md:py-9 rounded-[2.5rem] text-2xl md:text-4xl font-black flex items-center justify-center gap-4 transition-all duration-300 shadow-2xl active:scale-[0.98] ${
               loading 
                 ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
                 : 'bg-[#064E3B] text-white hover:bg-[#053a2b]'
@@ -152,36 +147,19 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        {/* Improved Error UI for API KEY */}
-        {error === "API_KEY_MISSING" && (
-          <div className="bg-red-50 border-2 border-red-100 p-8 md:p-12 rounded-[3rem] text-center mb-12 shadow-lg animate-in fade-in zoom-in">
-            <div className="flex justify-center mb-6 text-red-500">
-              <AlertCircle size={64} />
-            </div>
-            <h3 className="text-2xl md:text-3xl font-black text-red-800 mb-4">المفتاح غير مفعل في Vercel</h3>
-            <div className="text-red-700 font-bold space-y-4 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
-              <p>رغم إضافتك للمفتاح في الإعدادات، إلا أن المتصفح لا يراه. يرجى اتباع هذه الخطوات بالترتيب:</p>
-              <div className="bg-white/50 p-6 rounded-2xl text-right inline-block w-full">
-                <ol className="list-decimal list-inside space-y-3">
-                  <li>اذهب لصفحة <strong>Deployments</strong> في Vercel.</li>
-                  <li>اضغط على النقاط الثلاث بجانب <strong>آخر عملية نشر</strong>.</li>
-                  <li>اختر <span className="bg-red-100 px-2 rounded font-black text-red-800">Redeploy</span>.</li>
-                  <li>في النافذة التي ستظهر، تأكد من <strong>عدم</strong> تفعيل خيار "Use existing Build Cache" (إذا ظهر) ثم اضغط Redeploy.</li>
-                </ol>
-              </div>
-              <p className="text-sm opacity-70">هذا الإجراء سيجبر Vercel على حقن المفتاح في الكود أثناء إعادة البناء.</p>
-            </div>
+        {/* Error Handling */}
+        {error && (
+          <div className="bg-red-50 border-2 border-red-100 p-8 rounded-[2.5rem] text-center mb-12 animate-in fade-in zoom-in">
+            <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
+            <p className="text-xl font-bold text-red-800">
+              {error === "API_KEY_MISSING" 
+                ? "عذراً، لم يتم العثور على مفتاح التشغيل. تأكد من إضافته في إعدادات المنصة." 
+                : "حدث خطأ أثناء جلب الفكرة، يرجى المحاولة مرة أخرى."}
+            </p>
           </div>
         )}
 
-        {error === "CONNECTION_ERROR" && (
-          <div className="bg-orange-50 border-2 border-orange-100 p-8 rounded-[3rem] text-center mb-12">
-            <AlertCircle size={48} className="mx-auto text-orange-500 mb-4" />
-            <p className="text-xl font-bold text-orange-800">فشل الاتصال بالذكاء الاصطناعي. تأكد من جودة الإنترنت أو صحة المفتاح.</p>
-          </div>
-        )}
-
-        {/* Results Area */}
+        {/* Result Area */}
         <div id="result-section">
           {idea && !loading && (
             <div className="bg-white rounded-[4rem] shadow-2xl overflow-hidden border border-slate-50 animate-in slide-in-from-bottom-20 duration-700">
@@ -190,7 +168,7 @@ const App: React.FC = () => {
                   <span className="bg-white/10 px-4 py-1 rounded-full text-sm font-bold border border-white/20">
                     {idea.category}
                   </span>
-                  <div className="flex items-center gap-2 text-sm font-bold">
+                  <div className="flex items-center gap-2 text-sm font-bold opacity-80">
                     <Clock size={18} /> {idea.estimatedTime}
                   </div>
                 </div>
@@ -213,7 +191,7 @@ const App: React.FC = () => {
                   <div className="grid gap-6">
                     {idea.steps.map((step, i) => (
                       <div key={i} className="flex flex-row-reverse gap-6 items-start group">
-                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#064E3B] text-white font-black text-xl flex items-center justify-center shadow-md transition-transform group-hover:scale-110">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#064E3B] text-white font-black text-xl flex items-center justify-center shadow-md">
                           {i + 1}
                         </div>
                         <p className="text-slate-500 font-bold text-lg md:text-2xl pt-2 leading-relaxed flex-1">{step}</p>
