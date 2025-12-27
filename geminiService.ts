@@ -20,13 +20,8 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // استخدام مفتاح API من البيئة
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error("API Key is missing from environment variables.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
+  // Always use direct initialization with named parameter for API key
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const categoryNames: Record<string, string> = {
     [CategoryId.HIFZ]: "حفظ آيات جديدة وإتقانها",
@@ -36,42 +31,44 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
     [CategoryId.TAJWEED]: "تعلم أحكام التجويد والأداء الصوتي",
   };
 
-  const targetCategory = category === CategoryId.ALL ? "فكرة مهارية متقدمة في التحفيظ والتجويد" : categoryNames[category];
+  const targetCategory = category === CategoryId.ALL ? "فكرة مهارية في التحفيظ والتجويد" : categoryNames[category];
   const isAdult = level === StudentLevel.ADULTS;
 
-  const systemInstruction = `أنت مساعد خبير تقني وتربوي متخصص حصرياً في "مهارات تحفيظ القرآن الكريم وتجويده".
-  مهمتك هي ابتكار أساليب عملية تركز حصراً على الجوانب المهارية التالية:
-  1. **الحفظ والإتقان:** أساليب مبتكرة للحفظ السريع وتثبيت الآيات.
-  2. **ربط الآيات:** تقنيات ذكية لربط المقاطع والآيات ذهنيّاً.
-  3. **التجويد والأداء:** طرق تفاعلية لتعلم الأحكام ومخارج الحروف.
-  4. **المراجعة:** أساليب غير تقليدية لتثبيت المتشابهات.
+  const systemInstruction = `أنت مساعد خبير متخصص في "مهارات تحفيظ القرآن الكريم وتجويده".
+مهمتك ابتكار أساليب عملية تركز حصراً على:
+1. الحفظ السريع والإتقان.
+2. ربط الآيات والمقاطع ذهنيّاً.
+3. التجويد العملي والأداء الصوتي.
+4. تثبيت المتشابهات.
 
-  الضوابط الصارمة:
-  - الأدوات المسموحة فقط: (أوراق، أقلام، سبورة، هواتف ذكية).
-  - يُمنع منعاً باتاً الدخول في تفاسير القرآن الكريم العميقة أو المسائل الخلافية. اكتفِ بالمعنى الإجمالي الميسر جداً.
-  - يُمنع التركيز على دروس الأخلاق أو الوعظ أو العمل بالقرآن؛ هدفنا مهارات الحفظ والتجويد فقط.
-  - يجب أن تكون الفكرة مبتكرة، خارج الصندوق، وسهلة التطبيق الفوري.`;
+الضوابط:
+- الأدوات: (أوراق، أقلام، سبورة، هواتف ذكية) فقط.
+- لا تفاسير عميقة، لا وعظ، لا دروس أخلاقية.
+- الفكرة يجب أن تكون مبتكرة، سهلة التطبيق، ومناسبة للفئة العمرية.`;
 
-  const prompt = `المطلوب: توليد فكرة عملية ومبتكرة لـ ${isAdult ? "طلاب كبار" : "أطفال صغار"} في مجال: "${targetCategory}".
-  يجب أن تكون الاستجابة بصيغة JSON فقط وباللغة العربية الفصحى.`;
+  const prompt = `أعطني فكرة إبداعية لـ ${isAdult ? "الكبار" : "الأطفال"} في مجال: ${targetCategory}. 
+يجب أن تكون الاستجابة بصيغة JSON فقط.`;
 
   try {
+    // Correct way to call generateContent with model and config
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview", // استخدام النسخة الأكثر استقراراً وقوة
-      contents: [{ parts: [{ text: prompt }] }],
+      model: "gemini-3-flash-preview",
+      contents: prompt,
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
-        temperature: 0.8,
+        temperature: 1,
       },
     });
 
-    const text = response.text;
-    if (!text) throw new Error("استجابة فارغة من الذكاء الاصطناعي");
-    return JSON.parse(text.trim()) as TeachingIdea;
+    // Access .text property directly (not a method call)
+    const resultText = response.text;
+    if (!resultText) throw new Error("EMPTY_RESPONSE");
+    
+    return JSON.parse(resultText) as TeachingIdea;
   } catch (error: any) {
-    console.error("Gemini API Detail Error:", error);
+    console.error("Gemini Error:", error);
     throw error;
   }
 };

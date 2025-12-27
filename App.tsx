@@ -51,8 +51,12 @@ const App: React.FC = () => {
         resultSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 150);
     } catch (err: any) {
-      console.error(err);
-      setError('حدث خطأ أثناء استحضار الفكرة. يرجى المحاولة مرة أخرى.');
+      console.error("App Error:", err);
+      if (err.message === "API_KEY_MISSING") {
+        setError('تنبيه: مفتاح API_KEY غير متاح. يرجى التأكد من إضافته في الإعدادات.');
+      } else {
+        setError('حدث خطأ أثناء استحضار الفكرة. يرجى المحاولة مرة أخرى.');
+      }
     } finally {
       setLoading(false);
     }
@@ -67,7 +71,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFDFB] text-[#1E293B] font-['Tajawal'] pb-10 selection:bg-[#064E3B] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#FDFDFB] text-[#1E293B] font-['Tajawal'] pb-10 selection:bg-[#064E3B] selection:text-white overflow-x-hidden" dir="rtl">
       {/* Organized White Header Box with Logo */}
       <div className="bg-white shadow-sm border-b border-slate-100 mb-6 md:mb-8">
         <header className={`max-w-6xl mx-auto px-6 py-4 md:px-12 flex items-center justify-start gap-5 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
@@ -80,185 +84,166 @@ const App: React.FC = () => {
               />
             </div>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col text-right">
             <h1 className="text-2xl md:text-4xl font-[900] text-[#064E3B] leading-none tracking-tight">مُعين المحفظ</h1>
-            <p className="text-xs md:text-lg text-[#B45309] font-bold mt-1">بنك الأفكار</p>
+            <p className="text-xs md:text-lg text-[#B45309] font-bold mt-1">بنك الأفكار المهارية</p>
           </div>
         </header>
       </div>
 
       <main className="max-w-4xl mx-auto px-6">
-        {/* Hero Title - Forced into Single Line */}
+        {/* Hero Title */}
         <section className={`text-center mt-2 mb-8 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <h2 className="text-[1.65rem] xs:text-[2rem] sm:text-5xl md:text-7xl font-[900] text-[#064E3B] leading-tight whitespace-nowrap overflow-visible">
+          <h2 className="text-[1.65rem] xs:text-[2rem] sm:text-5xl md:text-7xl font-[900] text-[#064E3B] leading-tight overflow-visible">
             ابتكر أسلوباً <span className="text-[#B45309]">جديداً</span> في حلقتك
           </h2>
         </section>
 
-        {/* Level Switcher - Clean Tabs */}
+        {/* Level Switcher */}
         <div className={`flex justify-center mb-6 transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
           <div className="bg-white rounded-[2rem] p-1.5 flex shadow-sm border border-slate-100 w-full max-w-lg relative">
             <button
               onClick={() => setStudentLevel(StudentLevel.CHILDREN)}
-              className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.6rem] text-lg md:text-xl font-bold transition-all duration-500 z-10 relative ${
-                studentLevel === StudentLevel.CHILDREN ? 'text-white' : 'text-slate-400'
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-[1.8rem] transition-all duration-300 font-bold ${studentLevel === StudentLevel.CHILDREN ? 'bg-[#064E3B] text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
             >
-              <Baby size={22} /> حلقات الأشبال
+              <Baby size={20} />
+              <span>للأطفال</span>
             </button>
             <button
               onClick={() => setStudentLevel(StudentLevel.ADULTS)}
-              className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.6rem] text-lg md:text-xl font-bold transition-all duration-500 z-10 relative ${
-                studentLevel === StudentLevel.ADULTS ? 'text-white' : 'text-slate-400'
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-[1.8rem] transition-all duration-300 font-bold ${studentLevel === StudentLevel.ADULTS ? 'bg-[#064E3B] text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
             >
-              <User size={22} /> حلقات الكبار
+              <User size={20} />
+              <span>للكبار</span>
             </button>
-            <div 
-              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-[#064E3B] rounded-[1.4rem] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-md ${
-                studentLevel === StudentLevel.CHILDREN ? 'right-1.5' : 'right-[50%]'
-              }`}
-            />
           </div>
         </div>
 
-        {/* Categories Grid - Raised slightly more as requested */}
-        <div className={`grid grid-cols-2 md:grid-cols-3 gap-4 mb-6 transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-[-6px]' : 'opacity-0 translate-y-8'}`}>
-          {CATEGORIES.map((cat, index) => (
+        {/* Categories Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-10">
+          {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`flex flex-col items-center justify-center gap-3 p-6 rounded-[2rem] bg-white transition-all duration-300 border-2 active:scale-95 group ${
-                selectedCategory === cat.id 
-                  ? 'border-[#B45309] shadow-lg -translate-y-2' 
-                  : 'border-transparent shadow-sm hover:border-slate-100'
-              }`}
+              className={`flex flex-col items-center justify-center p-4 rounded-3xl border-2 transition-all duration-300 ${selectedCategory === cat.id ? 'border-[#B45309] bg-orange-50/50 shadow-sm' : 'border-slate-100 bg-white hover:border-orange-200'}`}
             >
-              <div className={`transition-all duration-500 p-3 rounded-2xl flex items-center justify-center ${
-                selectedCategory === cat.id 
-                  ? 'bg-[#B45309] text-white scale-110 rotate-[15deg] shadow-md shadow-orange-900/10' 
-                  : 'bg-slate-50 text-slate-300 group-hover:bg-slate-100 group-active:rotate-[-10deg]'
-              }`}>
+              <div className={`mb-2 p-2 rounded-xl ${selectedCategory === cat.id ? 'text-[#B45309]' : 'text-slate-400'}`}>
                 {cat.icon}
               </div>
-              <span className={`text-base md:text-lg font-black transition-colors duration-300 ${selectedCategory === cat.id ? 'text-[#B45309]' : 'text-slate-400'}`}>
+              <span className={`text-sm font-bold ${selectedCategory === cat.id ? 'text-[#064E3B]' : 'text-slate-600'}`}>
                 {cat.label}
               </span>
             </button>
           ))}
         </div>
 
-        {/* Prominent CTA Button - Raised slightly more as requested */}
-        <div className="relative group -translate-y-2">
+        {/* Action Button */}
+        <div className="flex justify-center mb-16">
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className={`relative w-full py-6 rounded-3xl text-xl md:text-3xl font-black flex items-center justify-center gap-4 transition-all duration-500 shadow-2xl active:scale-[0.98] ${
-              loading 
-                ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
-                : 'bg-[#064E3B] text-white hover:bg-[#053a2b] hover:shadow-emerald-900/20'
-            }`}
+            className="group relative bg-[#064E3B] text-white px-10 py-5 rounded-[2.5rem] text-xl font-black shadow-xl hover:shadow-2xl hover:bg-[#053c2e] disabled:opacity-70 disabled:cursor-not-allowed transition-all active:scale-95 flex items-center gap-4 overflow-hidden"
           >
             {loading ? (
-              <RefreshCw className="animate-spin" size={28} />
+              <RefreshCw className="animate-spin" size={24} />
             ) : (
-              <>
-                اكتشف أسلوباً مبدعاً <Sparkles className="text-yellow-400" size={28} />
-              </>
+              <Sparkles className="group-hover:rotate-12 transition-transform" size={24} />
             )}
+            <span>استلهم فكرة جديدة</span>
+            {loading && <div className="absolute inset-0 bg-white/10 animate-pulse" />}
           </button>
         </div>
 
-        {/* Result Area */}
-        <div id="result-section" className="mt-12 md:mt-16">
-          {error && (
-            <div className="bg-red-50 text-red-700 p-8 rounded-3xl text-center font-bold border border-red-100 shadow-sm">
-              {error}
-              <p className="text-xs mt-2 opacity-50 font-medium">تأكد من إعداد مفتاح API بشكل صحيح</p>
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-100 text-red-700 p-6 rounded-3xl mb-12 flex items-start gap-4 animate-in fade-in slide-in-from-top-4 text-right">
+            <div className="bg-red-100 p-2 rounded-full text-red-600 flex-shrink-0">
+              <RefreshCw size={20} />
             </div>
-          )}
+            <p className="font-bold">{error}</p>
+          </div>
+        )}
 
-          {idea && !loading && (
-            <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-50 animate-in fade-in slide-in-from-bottom-10 duration-700">
-              <div className="bg-[#064E3B] p-10 md:p-16 text-white relative">
-                <div className="flex justify-between items-center mb-8">
-                  <span className="text-xs md:text-sm bg-white/10 px-5 py-2 rounded-full font-black border border-white/20 uppercase">
-                    {idea.category}
-                  </span>
-                  <div className="flex items-center gap-2 text-xs md:text-sm font-bold bg-black/20 px-4 py-2 rounded-full">
-                    <Clock size={18} /> {idea.estimatedTime}
+        {/* Result Section */}
+        {idea && (
+          <div id="result-section" className="scroll-mt-8 animate-in fade-in slide-in-from-bottom-8 duration-700 text-right">
+            <div className="bg-white rounded-[3rem] p-8 md:p-12 shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-32 h-32 bg-orange-50 rounded-br-full opacity-50 -ml-16 -mt-16" />
+              
+              <div className="flex flex-col md:flex-row-reverse md:items-center justify-between gap-6 mb-10 border-b border-slate-100 pb-8">
+                <div className="flex items-center flex-row-reverse gap-5">
+                  <div className="bg-orange-100 p-4 rounded-[2rem] text-[#B45309]">
+                    <Lightbulb size={32} />
+                  </div>
+                  <div>
+                    <span className="text-[#B45309] font-black text-sm uppercase tracking-widest">{idea.category}</span>
+                    <h3 className="text-3xl md:text-4xl font-[900] text-[#064E3B] mt-1">{idea.title}</h3>
                   </div>
                 </div>
-                <h3 className="text-4xl md:text-6xl font-black leading-tight mb-4">{idea.title}</h3>
-                <div className="absolute -bottom-8 right-10 md:right-16">
-                  <div className="bg-[#B45309] p-5 rounded-2xl shadow-xl ring-[8px] ring-white transform rotate-3">
-                    <Lightbulb className="text-white" size={32} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-10 md:p-16 pt-16">
-                <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-100 mb-10">
-                  <p className="text-xl md:text-3xl text-slate-600 font-medium italic leading-relaxed text-center">
-                    "{idea.description}"
-                  </p>
-                </div>
-
-                <div className="space-y-8 mb-12">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-8 bg-[#B45309] rounded-full"></div>
-                    <h4 className="font-black text-[#064E3B] text-2xl md:text-3xl">خطة التنفيذ المهاري</h4>
-                  </div>
-                  <div className="grid gap-6">
-                    {idea.steps.map((step, i) => (
-                      <div key={i} className="flex gap-5 group">
-                        <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-[#064E3B] text-white font-black text-xl flex items-center justify-center shadow-md transition-transform group-hover:scale-110">
-                          {i + 1}
-                        </div>
-                        <p className="text-slate-500 font-bold text-lg md:text-2xl pt-2 leading-snug">{step}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-orange-50 to-white rounded-[2.5rem] p-8 border border-orange-100 mb-12 relative overflow-hidden">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Trophy size={28} className="text-[#B45309]" />
-                    <h4 className="text-[#B45309] font-black text-sm uppercase tracking-wider">الثمرة التعليمية</h4>
-                  </div>
-                  <p className="text-[#064E3B] font-black text-2xl md:text-4xl leading-tight">
-                    {idea.benefit}
-                  </p>
-                </div>
-
-                <div className="flex flex-col md:flex-row gap-4">
-                  <button
-                    onClick={() => {
-                      const text = `💡 فكرة من مُعين المحفظ: *${idea.title}*\n\n${idea.description}\n\n🌟 الإنجاز: ${idea.benefit}`;
-                      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                    }}
-                    className="flex-[2] bg-[#064E3B] text-white py-5 rounded-2xl font-black text-lg md:text-2xl flex items-center justify-center gap-3 hover:bg-[#053a2b] transition-all shadow-lg active:scale-95"
-                  >
-                    <Share2 size={24} /> مشاركة الفكرة
-                  </button>
-                  <button
+                <div className="flex gap-3 flex-row-reverse">
+                  <button 
                     onClick={handleCopy}
-                    className={`flex-1 py-5 rounded-2xl font-black text-lg md:text-xl border-2 transition-all flex items-center justify-center gap-3 active:scale-95 ${
-                      copySuccess ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'border-slate-100 text-slate-400'
-                    }`}
+                    className="flex items-center gap-2 px-6 py-3 rounded-2xl border-2 border-slate-100 hover:bg-slate-50 transition-colors text-slate-600 font-bold"
                   >
-                    {copySuccess ? 'تم النسخ!' : 'نسخ النص'}
+                    {copySuccess ? 'تم النسخ!' : <><Share2 size={20} /> مشاركة</>}
                   </button>
+                  <div className="flex items-center gap-2 bg-slate-50 px-6 py-3 rounded-2xl text-slate-600 font-bold border border-slate-100">
+                    <Clock size={20} />
+                    <span>{idea.estimatedTime}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-5 gap-10">
+                <div className="md:col-span-3 space-y-8">
+                  <div>
+                    <h4 className="text-[#064E3B] font-black text-xl mb-4 flex items-center flex-row-reverse gap-2">
+                      <span className="w-2 h-6 bg-[#B45309] rounded-full" />
+                      شرح الفكرة
+                    </h4>
+                    <p className="text-slate-600 text-lg leading-relaxed font-medium">
+                      {idea.description}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-[#064E3B] font-black text-xl mb-6 flex items-center flex-row-reverse gap-2">
+                      <span className="w-2 h-6 bg-[#064E3B] rounded-full" />
+                      خطوات التنفيذ
+                    </h4>
+                    <div className="space-y-4">
+                      {idea.steps.map((step, idx) => (
+                        <div key={idx} className="flex flex-row-reverse gap-4 group">
+                          <span className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-100 text-[#064E3B] flex items-center justify-center font-black text-lg group-hover:bg-[#064E3B] group-hover:text-white transition-colors">
+                            {idx + 1}
+                          </span>
+                          <p className="text-slate-600 text-lg py-1.5 font-medium flex-1">{step}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="md:col-span-2">
+                  <div className="bg-[#064E3B] rounded-[2.5rem] p-8 text-white h-full shadow-lg relative overflow-hidden text-center">
+                    <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full" />
+                    <h4 className="font-black text-2xl mb-6 flex items-center justify-center gap-3">
+                      <Trophy size={28} className="text-orange-300" />
+                      أثر الفكرة
+                    </h4>
+                    <p className="text-orange-50 text-xl leading-relaxed font-bold italic">
+                      " {idea.benefit} "
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
 
-      <footer className="mt-16 text-center opacity-30 px-6">
-        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.4em] mb-1">مُعين المحفظ • بنك الأفكار المهارية</p>
-        <p className="text-[10px] font-bold text-slate-300">نعتز بخدمة أهل القرآن الكريم • ٢٠٢٥</p>
+      <footer className="mt-20 text-center text-slate-400 font-bold text-sm">
+        جميع الحقوق محفوظة &copy; تطبيق مُعين المحفظ الذكي 2024
       </footer>
     </div>
   );
