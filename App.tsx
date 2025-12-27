@@ -14,7 +14,8 @@ import {
   User,
   Clock,
   Lightbulb,
-  AlertCircle
+  AlertTriangle,
+  ExternalLink
 } from 'lucide-react';
 import { CategoryId, TeachingIdea, Category, StudentLevel } from './types';
 import { generateIdea } from './geminiService';
@@ -34,7 +35,6 @@ const App: React.FC = () => {
   const [studentLevel, setStudentLevel] = useState<StudentLevel>(StudentLevel.CHILDREN);
   const [idea, setIdea] = useState<TeachingIdea | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [copySuccess, setCopySuccess] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ const App: React.FC = () => {
       }, 100);
     } catch (err: any) {
       console.error(err);
-      setError('المفتاح غير متاح حالياً. تأكد من إضافة API_KEY في إعدادات Vercel ثم اضغط Redeploy.');
+      setError(err.message === "API_KEY_MISSING" ? "MISSING" : "ERROR");
     } finally {
       setLoading(false);
     }
@@ -60,15 +60,15 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FDFDFB] text-[#1E293B] font-['Tajawal'] pb-20" dir="rtl">
-      {/* Header - Matching Screenshot */}
+      {/* Header - Identical to Screenshot */}
       <div className="bg-white shadow-sm border-b border-slate-100 mb-8 sticky top-0 z-50">
         <header className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4 flex-row-reverse">
-            <div className="bg-white p-1 rounded-xl shadow-sm border border-slate-100 overflow-hidden w-12 h-12 md:w-16 md:h-16">
+            <div className="bg-white p-1 rounded-xl shadow-sm border border-slate-50 overflow-hidden w-12 h-12 md:w-16 md:h-16 flex items-center justify-center">
               <img 
                 src="https://www.awqaf.gov.ae/assets/mediakit/AwqafLogoIcon.png" 
                 alt="Logo" 
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain p-1"
               />
             </div>
             <div className="text-right">
@@ -81,7 +81,7 @@ const App: React.FC = () => {
 
       <main className="max-w-5xl mx-auto px-6">
         {/* Level Switcher */}
-        <div className="flex justify-center mb-10">
+        <div className="flex justify-center mb-12">
           <div className="bg-white rounded-full p-1.5 flex shadow-inner border border-slate-100 w-full max-w-sm relative">
             <button
               onClick={() => setStudentLevel(StudentLevel.CHILDREN)}
@@ -107,7 +107,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Categories Grid - 3 Columns (Exactly as requested) */}
+        {/* Categories Grid - 3 Columns (exactly as your first requirement) */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
           {CATEGORIES.map((cat) => (
             <button
@@ -116,7 +116,7 @@ const App: React.FC = () => {
               className={`flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] bg-white transition-all duration-300 border-2 active:scale-95 shadow-sm ${
                 selectedCategory === cat.id 
                   ? 'border-[#B45309] shadow-xl -translate-y-2' 
-                  : 'border-transparent hover:border-slate-100 hover:shadow-md text-slate-400'
+                  : 'border-transparent hover:border-slate-100 hover:shadow-md'
               }`}
             >
               <div className={`transition-all duration-500 p-4 rounded-2xl flex items-center justify-center ${
@@ -126,22 +126,22 @@ const App: React.FC = () => {
               }`}>
                 {cat.icon}
               </div>
-              <span className={`text-lg font-black ${selectedCategory === cat.id ? 'text-[#064E3B]' : ''}`}>
+              <span className={`text-lg font-black ${selectedCategory === cat.id ? 'text-[#064E3B]' : 'text-slate-400'}`}>
                 {cat.label}
               </span>
             </button>
           ))}
         </div>
 
-        {/* Generate Button */}
+        {/* Main Action Button */}
         <div className="flex justify-center mb-16">
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className={`w-full py-7 rounded-[2.2rem] text-2xl md:text-4xl font-black flex items-center justify-center gap-4 transition-all duration-500 shadow-2xl active:scale-95 ${
+            className={`w-full py-7 rounded-[2.2rem] text-2xl md:text-4xl font-black flex items-center justify-center gap-4 transition-all duration-500 shadow-2xl active:scale-[0.97] ${
               loading 
-                ? 'bg-slate-100 text-slate-300' 
-                : 'bg-[#064E3B] text-white hover:bg-[#053a2b]'
+                ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
+                : 'bg-[#064E3B] text-white hover:bg-[#053a2b] hover:shadow-emerald-900/30'
             }`}
           >
             {loading ? <RefreshCw className="animate-spin" size={36} /> : (
@@ -153,23 +153,28 @@ const App: React.FC = () => {
           </button>
         </div>
 
-        {/* Improved Error UI */}
-        {error && (
-          <div className="bg-red-50 border-2 border-red-100 p-10 rounded-[3rem] text-center mb-12 animate-in fade-in zoom-in duration-500">
+        {/* Error Handling UI */}
+        {error === "MISSING" && (
+          <div className="bg-red-50 border-2 border-red-100 p-12 rounded-[3.5rem] text-center mb-12 shadow-xl animate-in zoom-in duration-300">
             <div className="flex justify-center mb-6 text-red-500">
-              <AlertCircle size={64} />
+              <AlertTriangle size={64} />
             </div>
-            <h3 className="text-2xl font-black text-red-800 mb-4">{error}</h3>
-            <div className="text-red-600/70 space-y-2 font-bold max-w-md mx-auto leading-relaxed">
-              <p>ملاحظة هامة: بعد إضافة API_KEY في Vercel، يجب الضغط على <span className="bg-red-100 px-2 rounded">Redeploy</span> من قائمة النقاط الثلاث في صفحة الـ Deployments ليتم تفعيل المفتاح.</p>
+            <h3 className="text-3xl font-black text-red-800 mb-6">المفتاح غير نشط في Vercel</h3>
+            <div className="text-red-700 font-bold space-y-4 text-xl leading-relaxed">
+              <p>لتفعيل التطبيق، يرجى القيام بالتالي:</p>
+              <ol className="list-decimal list-inside text-right max-w-md mx-auto space-y-2">
+                <li>افتح إعدادات Vercel.</li>
+                <li>تأكد أن اسم المفتاح هو <code className="bg-red-100 px-2 rounded">API_KEY</code>.</li>
+                <li>اضغط <code className="bg-red-100 px-2 rounded font-black">Redeploy</code> من قائمة Deployments.</li>
+              </ol>
             </div>
           </div>
         )}
 
-        {/* Result Area */}
+        {/* Results Card */}
         <div id="result-section">
           {idea && !loading && (
-            <div className="bg-white rounded-[3.5rem] shadow-2xl overflow-hidden border border-slate-50 animate-in slide-in-from-bottom-20 duration-1000">
+            <div className="bg-white rounded-[4rem] shadow-2xl overflow-hidden border border-slate-50 animate-in fade-in slide-in-from-bottom-20 duration-1000">
               <div className="bg-[#064E3B] p-12 md:p-20 text-white relative">
                 <div className="flex justify-between items-center mb-10">
                   <span className="bg-white/10 px-6 py-2 rounded-full font-black border border-white/20 uppercase text-sm tracking-widest">
@@ -180,7 +185,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
                 <h3 className="text-5xl md:text-7xl font-black leading-tight mb-6">{idea.title}</h3>
-                <div className="absolute -bottom-8 right-12 bg-[#B45309] p-6 rounded-3xl shadow-2xl ring-[10px] ring-white floating">
+                <div className="absolute -bottom-8 right-12 bg-[#B45309] p-6 rounded-3xl shadow-2xl ring-[12px] ring-white floating">
                   <Lightbulb className="text-white" size={48} />
                 </div>
               </div>
@@ -193,7 +198,7 @@ const App: React.FC = () => {
                 <div className="space-y-12 mb-16">
                   <div className="flex items-center flex-row-reverse gap-4">
                     <div className="w-3 h-12 bg-[#B45309] rounded-full"></div>
-                    <h4 className="font-black text-[#064E3B] text-3xl md:text-5xl">خطة التنفيذ</h4>
+                    <h4 className="font-black text-[#064E3B] text-3xl md:text-5xl">خطوات التنفيذ</h4>
                   </div>
                   <div className="grid gap-8">
                     {idea.steps.map((step, i) => (
@@ -210,19 +215,19 @@ const App: React.FC = () => {
                 <div className="bg-gradient-to-br from-orange-50 to-white rounded-[3rem] p-12 border border-orange-100 mb-16 text-center">
                   <div className="flex items-center justify-center gap-4 mb-6">
                     <Trophy size={40} className="text-[#B45309]" />
-                    <h4 className="text-[#B45309] font-black text-lg uppercase tracking-[0.3em]">الثمرة التعليمية</h4>
+                    <h4 className="text-[#B45309] font-black text-lg uppercase tracking-[0.3em]">الفائدة التربوية</h4>
                   </div>
                   <p className="text-[#064E3B] font-black text-3xl md:text-5xl leading-tight">{idea.benefit}</p>
                 </div>
 
                 <button
                   onClick={() => {
-                    const text = `💡 فكرة من مُعين المحفظ: *${idea.title}*\n\n${idea.description}\n\n🌟 الإنجاز: ${idea.benefit}`;
+                    const text = `💡 فكرة من مُعين المحفظ: *${idea.title}*\n\n🌟 الفائدة: ${idea.benefit}`;
                     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                   className="w-full bg-[#064E3B] text-white py-8 rounded-[2.5rem] font-black text-2xl md:text-3xl flex items-center justify-center gap-4 hover:bg-[#053a2b] transition-all shadow-2xl active:scale-95"
                 >
-                  <Share2 size={36} /> مشاركة الفكرة عبر واتساب
+                  <Share2 size={36} /> مشاركة الفكرة
                 </button>
               </div>
             </div>
