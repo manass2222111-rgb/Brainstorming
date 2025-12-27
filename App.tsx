@@ -1,22 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
-  Sparkles, 
-  RefreshCw, 
-  Share2, 
-  Filter, 
-  Trophy, 
-  Brain, 
-  Users, 
-  Book,
-  Wind,
-  Baby,
-  User,
-  Clock,
-  Lightbulb,
-  AlertCircle,
-  Key,
-  ChevronLeft
+  Sparkles, RefreshCw, Share2, Filter, Trophy, Brain, Users, 
+  Book, Wind, Baby, User, Clock, Lightbulb, AlertTriangle, CheckCircle 
 } from 'lucide-react';
 import { CategoryId, TeachingIdea, Category, StudentLevel } from './types';
 import { generateIdea } from './geminiService';
@@ -35,213 +21,145 @@ const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>(CategoryId.ALL);
   const [studentLevel, setStudentLevel] = useState<StudentLevel>(StudentLevel.CHILDREN);
   const [idea, setIdea] = useState<TeachingIdea | null>(null);
-  const [error, setError] = useState<{title: string, msg: string, isKeyIssue: boolean} | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
     try {
-      const newIdea = await generateIdea(selectedCategory, studentLevel);
-      setIdea(newIdea);
-      setTimeout(() => {
-        document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 150);
+      const result = await generateIdea(selectedCategory, studentLevel);
+      setIdea(result);
+      document.getElementById('result')?.scrollIntoView({ behavior: 'smooth' });
     } catch (err: any) {
-      console.error("Gemini Error Context:", err);
-      const isKeyMissing = !process.env.API_KEY || process.env.API_KEY === 'undefined';
-      setError({
-        title: isKeyMissing ? "تنبيه: إعدادات المفتاح" : "عذراً، حدث خطأ",
-        msg: isKeyMissing 
-          ? "لم يتم العثور على API_KEY. يرجى التأكد من إضافته في إعدادات Vercel وعمل Redeploy." 
-          : "هناك مشكلة في الاتصال بخدمة Gemini. تأكد من صلاحية المفتاح والاتصال.",
-        isKeyIssue: isKeyMissing
-      });
+      if (err.message === "API_KEY_MISSING") {
+        setError("مفتاح API غير مفعّل. يرجى التأكد من إضافة API_KEY في إعدادات Vercel.");
+      } else {
+        setError("حدث خطأ أثناء الاتصال. يرجى المحاولة مرة أخرى.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFDFB] text-[#1E293B] font-['Tajawal'] pb-24" dir="rtl">
+    <div className="min-h-screen bg-[#F8F9FA] font-['Tajawal'] antialiased text-slate-900 pb-20" dir="rtl">
       {/* Header */}
-      <header className="bg-white/90 backdrop-blur-xl sticky top-0 z-50 border-b border-slate-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-row-reverse">
-            <div className="bg-[#064E3B] p-2.5 rounded-2xl shadow-lg rotate-2">
-              <img src="https://www.awqaf.gov.ae/assets/mediakit/AwqafLogoIcon.png" alt="Awqaf" className="w-9 h-9 object-contain invert" />
+      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4 shadow-sm">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="bg-[#064E3B] p-2 rounded-xl shadow-md">
+              <img src="https://www.awqaf.gov.ae/assets/mediakit/AwqafLogoIcon.png" className="w-8 h-8 invert" alt="Logo" />
             </div>
-            <div className="text-right">
-              <h1 className="text-2xl font-black text-[#064E3B] leading-none">مُعين المحفظ</h1>
-              <p className="text-[10px] font-bold text-[#B45309] mt-1 tracking-widest uppercase">الابتكار في تعليم القرآن</p>
-            </div>
+            <h1 className="text-xl font-extrabold text-[#064E3B]">مُعين المحفظ</h1>
           </div>
+          <div className="hidden md:block text-[10px] font-bold text-slate-400 tracking-widest uppercase">AI-Powered Teaching Assistant</div>
         </div>
-      </header>
+      </nav>
 
-      <main className="max-w-6xl mx-auto px-6 mt-12">
-        {/* Student Level Selector */}
-        <div className="flex justify-center mb-16">
-          <div className="bg-slate-100 p-1.5 rounded-[2.5rem] flex w-full max-w-sm shadow-inner relative">
-            <button
+      <main className="max-w-6xl mx-auto px-6 pt-12">
+        {/* Selector */}
+        <div className="flex justify-center mb-12">
+          <div className="bg-slate-200 p-1 rounded-full flex w-full max-w-xs shadow-inner relative">
+            <button 
               onClick={() => setStudentLevel(StudentLevel.CHILDREN)}
-              className={`flex-1 py-4 rounded-[2rem] text-base font-black transition-all duration-500 z-10 flex items-center justify-center gap-2 ${
-                studentLevel === StudentLevel.CHILDREN ? 'text-white' : 'text-slate-400'
-              }`}
-            >
-              <Baby size={20} /> للأطفال
-            </button>
-            <button
+              className={`flex-1 py-3 rounded-full text-sm font-bold z-10 transition-colors ${studentLevel === StudentLevel.CHILDREN ? 'text-white' : 'text-slate-500'}`}
+            >الأطفال</button>
+            <button 
               onClick={() => setStudentLevel(StudentLevel.ADULTS)}
-              className={`flex-1 py-4 rounded-[2rem] text-base font-black transition-all duration-500 z-10 flex items-center justify-center gap-2 ${
-                studentLevel === StudentLevel.ADULTS ? 'text-white' : 'text-slate-400'
-              }`}
-            >
-              <User size={20} /> للكبار
-            </button>
-            <div 
-              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-[#064E3B] rounded-[2rem] transition-all duration-500 shadow-xl ${
-                studentLevel === StudentLevel.CHILDREN ? 'right-1.5' : 'right-[50%]'
-              }`}
-            />
+              className={`flex-1 py-3 rounded-full text-sm font-bold z-10 transition-colors ${studentLevel === StudentLevel.ADULTS ? 'text-white' : 'text-slate-500'}`}
+            >الكبار</button>
+            <div className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#064E3B] rounded-full transition-all duration-300 shadow-md ${studentLevel === StudentLevel.CHILDREN ? 'right-1' : 'right-[50%]'}`} />
           </div>
         </div>
 
-        {/* Categories Grid - 3 Columns on Desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-20">
+        {/* 3-Column Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`group flex flex-col items-center justify-center p-12 rounded-[3.5rem] transition-all duration-500 border-2 active:scale-95 ${
-                selectedCategory === cat.id 
-                  ? 'bg-white border-[#B45309] shadow-2xl shadow-orange-100 scale-[1.03] ring-4 ring-orange-50' 
-                  : 'bg-white border-transparent shadow-sm hover:shadow-xl hover:border-slate-100'
+              className={`p-8 rounded-[2.5rem] bg-white border-2 transition-all duration-300 text-center flex flex-col items-center gap-4 group ${
+                selectedCategory === cat.id ? 'border-[#B45309] shadow-xl scale-[1.02]' : 'border-transparent hover:border-slate-200 shadow-sm'
               }`}
             >
-              <div className={`mb-6 p-6 rounded-3xl transition-all duration-500 ${
-                selectedCategory === cat.id 
-                  ? 'bg-[#B45309] text-white shadow-lg rotate-6 scale-110' 
-                  : 'bg-slate-50 text-slate-300 group-hover:bg-orange-50 group-hover:text-orange-300'
-              }`}>
+              <div className={`p-5 rounded-2xl transition-colors ${selectedCategory === cat.id ? 'bg-[#B45309] text-white' : 'bg-slate-50 text-slate-300 group-hover:text-[#B45309]'}`}>
                 {cat.icon}
               </div>
-              <span className={`text-xl md:text-2xl font-black ${
-                selectedCategory === cat.id ? 'text-[#064E3B]' : 'text-slate-400'
-              }`}>
-                {cat.label}
-              </span>
+              <span className={`text-xl font-bold ${selectedCategory === cat.id ? 'text-[#064E3B]' : 'text-slate-400'}`}>{cat.label}</span>
             </button>
           ))}
         </div>
 
-        {/* Generate Button */}
-        <div className="max-w-md mx-auto mb-24">
+        {/* CTA */}
+        <div className="flex flex-col items-center gap-6">
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className={`w-full py-8 rounded-[3rem] text-2xl font-black flex items-center justify-center gap-4 transition-all duration-500 shadow-2xl relative overflow-hidden ${
-              loading 
-                ? 'bg-slate-100 text-slate-300 scale-95' 
-                : 'bg-[#064E3B] text-white hover:bg-[#043d2e] hover:shadow-emerald-900/20 hover:-translate-y-1'
+            className={`px-12 py-6 rounded-full text-xl font-black flex items-center gap-3 transition-all shadow-2xl ${
+              loading ? 'bg-slate-200 text-slate-400 scale-95' : 'bg-[#064E3B] text-white hover:bg-[#043d2e] hover:-translate-y-1'
             }`}
           >
-            {loading ? <RefreshCw className="animate-spin" size={32} /> : (
-              <>
-                <span>استلهم فكرة</span>
-                <Sparkles className="text-yellow-400" size={28} />
-              </>
-            )}
+            {loading ? <RefreshCw className="animate-spin" /> : <Sparkles className="text-yellow-400" />}
+            {loading ? 'جاري التفكير...' : 'توليد فكرة إبداعية'}
           </button>
+
+          {error && (
+            <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 text-red-700 font-bold animate-bounce">
+              <AlertTriangle size={20} />
+              {error}
+            </div>
+          )}
         </div>
 
-        {/* Diagnostics & Error Section */}
-        {error && (
-          <div className="max-w-2xl mx-auto bg-white border-2 border-red-50 p-12 rounded-[4rem] shadow-2xl text-center mb-24 animate-in zoom-in-95 duration-500">
-            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8">
-              <AlertCircle className="text-red-500" size={48} />
-            </div>
-            <h3 className="text-2xl font-black text-red-900 mb-4">{error.title}</h3>
-            <p className="text-red-600 font-bold mb-10 text-lg leading-relaxed">{error.msg}</p>
-            
-            {error.isKeyIssue && (
-              <div className="bg-slate-900 p-8 rounded-[2.5rem] text-right text-white relative overflow-hidden shadow-2xl">
-                <div className="flex items-center gap-3 mb-6 text-emerald-400 font-black">
-                  <Key size={20} /> تقرير التشخيص الفني
-                </div>
-                <div className="space-y-4 font-bold text-slate-300 text-sm">
-                  <div className="flex items-start gap-3">
-                    <span className="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-xs">INFO</span>
-                    <p>الحالة: المفتاح غير معروف للمتصفح (undefined).</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded text-xs">FIX</span>
-                    <p>تأكد من تسمية المتغير في Vercel بـ <code className="bg-white/10 px-1 rounded">API_KEY</code>.</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-xs">REQ</span>
-                    <p>يجب الضغط على <b>Redeploy</b> بعد حفظ الإعدادات.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Result Area */}
-        <div id="result-section">
+        {/* Result */}
+        <div id="result" className="mt-20">
           {idea && !loading && (
-            <div className="bg-white rounded-[5rem] shadow-2xl overflow-hidden border border-slate-50 animate-in slide-in-from-bottom-20 duration-1000">
-              <div className="bg-gradient-to-br from-[#064E3B] to-[#043d2e] p-16 md:p-24 text-white relative">
-                <div className="flex justify-between items-center mb-10">
-                  <div className="bg-white/10 px-6 py-2 rounded-full text-xs font-black border border-white/20 backdrop-blur-md">
-                    {idea.category}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm font-bold opacity-70">
-                    <Clock size={20} /> {idea.estimatedTime}
-                  </div>
+            <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in slide-in-from-bottom-10 duration-700">
+              <div className="bg-[#064E3B] p-10 md:p-16 text-white text-center relative">
+                <div className="bg-white/10 backdrop-blur-md px-4 py-1 rounded-full text-[10px] inline-block mb-4 border border-white/20">{idea.category}</div>
+                <h2 className="text-3xl md:text-5xl font-black mb-4 leading-tight">{idea.title}</h2>
+                <div className="flex justify-center items-center gap-2 opacity-70 text-sm font-bold">
+                  <Clock size={16} /> {idea.estimatedTime}
                 </div>
-                <h3 className="text-4xl md:text-6xl font-black mb-8 leading-tight">{idea.title}</h3>
-                <div className="absolute -bottom-10 right-16 md:right-24 bg-[#B45309] p-8 rounded-[2.5rem] shadow-2xl ring-[12px] ring-white floating">
-                  <Lightbulb className="text-white" size={48} />
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-[#B45309] p-5 rounded-2xl shadow-xl floating">
+                  <Lightbulb className="text-white" size={32} />
                 </div>
               </div>
-
-              <div className="p-16 md:p-28 pt-24">
-                <div className="bg-orange-50/50 p-10 md:p-16 rounded-[3rem] border border-orange-100/50 mb-20 text-center shadow-inner">
-                  <p className="text-2xl md:text-4xl text-slate-700 font-medium italic leading-relaxed">"{idea.description}"</p>
+              
+              <div className="p-10 md:p-20 pt-16">
+                <div className="text-center mb-12">
+                  <p className="text-xl md:text-2xl text-slate-600 font-medium leading-relaxed italic">"{idea.description}"</p>
                 </div>
 
-                <div className="space-y-12 mb-20">
-                  <h4 className="font-black text-[#064E3B] text-3xl flex items-center gap-5">
-                    <div className="w-3 h-12 bg-[#B45309] rounded-full"></div>
-                    خطوات التنفيذ العميق
-                  </h4>
-                  <div className="grid gap-6">
-                    {idea.steps.map((step, i) => (
-                      <div key={i} className="flex gap-8 items-start bg-slate-50/50 p-8 md:p-10 rounded-[3rem] border border-transparent hover:border-orange-100 transition-all duration-300 group">
-                        <div className="w-14 h-14 rounded-2xl bg-white text-[#B45309] font-black text-2xl flex items-center justify-center flex-shrink-0 shadow-md border border-orange-50 group-hover:scale-110 transition-transform">
-                          {i + 1}
+                <div className="grid md:grid-cols-2 gap-12">
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-black text-[#064E3B] flex items-center gap-2 border-r-4 border-[#B45309] pr-3">خطة التنفيذ:</h3>
+                    <div className="space-y-4">
+                      {idea.steps.map((step, i) => (
+                        <div key={i} className="flex gap-4 items-start">
+                          <span className="w-8 h-8 rounded-lg bg-emerald-50 text-[#064E3B] font-bold flex items-center justify-center flex-shrink-0">{i+1}</span>
+                          <p className="font-bold text-slate-700 leading-relaxed">{step}</p>
                         </div>
-                        <p className="text-slate-600 font-bold text-xl md:text-2xl pt-2 leading-relaxed">{step}</p>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 self-start">
+                    <h3 className="text-xl font-black text-[#064E3B] mb-4 flex items-center gap-2">
+                      <CheckCircle size={20} className="text-[#B45309]" />
+                      الهدف والنتيجة:
+                    </h3>
+                    <p className="text-lg font-bold text-slate-600 leading-relaxed">{idea.benefit}</p>
                   </div>
                 </div>
 
-                <div className="bg-[#064E3B] p-16 rounded-[4rem] text-center mb-16 shadow-2xl shadow-emerald-900/10">
-                  <Trophy className="mx-auto text-yellow-400 mb-6" size={64} />
-                  <h4 className="font-black text-[10px] text-yellow-400 uppercase tracking-[0.5em] mb-4">الثمرة التربوية المرجوة</h4>
-                  <p className="text-white font-black text-3xl md:text-5xl leading-tight">{idea.benefit}</p>
-                </div>
-
-                <button
+                <button 
                   onClick={() => {
-                    const text = `💡 استلهمت فكرة إبداعية للحلقة: *${idea.title}*\n\n🌟 الأثر: ${idea.benefit}\n\nعبر تطبيق "مُعين المحفظ" الذكي.`;
-                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                    const msg = `💡 فكرة إبداعية للحلقة: *${idea.title}*\n\n🌟 الأثر: ${idea.benefit}\n\nتوليد عبر: مُعين المحفظ الذكي.`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                   }}
-                  className="w-full bg-slate-900 text-white py-8 rounded-[3rem] font-black text-2xl flex items-center justify-center gap-4 hover:bg-black transition-all shadow-2xl active:scale-95"
+                  className="mt-16 w-full py-6 rounded-2xl bg-[#25D366] text-white font-black text-xl flex items-center justify-center gap-3 hover:opacity-90 transition-opacity shadow-lg"
                 >
-                  <Share2 size={32} /> شارك الفائدة مع المعلمين
+                  <Share2 /> شاركها عبر واتساب
                 </button>
               </div>
             </div>
@@ -249,8 +167,8 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      <footer className="mt-40 text-center opacity-30 pb-16">
-        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.6em]">مُعين المحفظ • رؤية إبداعية لجيل القرآن • ٢٠٢٥</p>
+      <footer className="mt-40 pb-20 text-center opacity-30 pointer-events-none">
+        <p className="text-[10px] font-black uppercase tracking-[1em]">مُعين المحفظ • ذكاء اصطناعي قرآني • ٢٠٢٥</p>
       </footer>
     </div>
   );
