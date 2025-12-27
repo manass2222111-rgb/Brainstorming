@@ -16,11 +16,11 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // محاولة الحصول على المفتاح بأكثر من طريقة لضمان العمل في بيئة المتصفح
-  const apiKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
+  // استخدام المفتاح من متغيرات البيئة كما هو منصوص عليه في التعليمات
+  const apiKey = process.env.API_KEY;
 
   if (!apiKey || apiKey === 'undefined' || apiKey.trim() === "") {
-    console.error("Critical: API_KEY is missing from environment variables.");
+    console.error("API_KEY is not configured in the environment.");
     throw new Error("API_KEY_MISSING");
   }
 
@@ -28,31 +28,30 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
     const ai = new GoogleGenAI({ apiKey });
     
     const categoryNames: Record<string, string> = {
-      [CategoryId.HIFZ]: "تحفيظ وحفظ جديد بأساليب غير تقليدية",
-      [CategoryId.REVIEW]: "مراجعة وتثبيت المحفوظ بطرق تفاعلية",
-      [CategoryId.MOTIVATION]: "تحفيز وتشجيع الطلاب وكسر الروتين",
-      [CategoryId.MANAGEMENT]: "ضبط الحلقة وإدارة الوقت بذكاء",
-      [CategoryId.TAJWEED]: "تطوير الأداء والتجويد بمتعة وبساطة",
+      [CategoryId.HIFZ]: "أساليب غير تقليدية لحفظ الجديد بمتعة",
+      [CategoryId.REVIEW]: "ألعاب تفاعلية لمراجعة وتثبيت المحفوظ",
+      [CategoryId.MOTIVATION]: "طرق مبتكرة لتحفيز الطلاب وكسر الروتين",
+      [CategoryId.MANAGEMENT]: "مهارات ذكية لضبط الحلقة وإدارة الوقت",
+      [CategoryId.TAJWEED]: "تبسيط التجويد وتحسين الأداء الصوتي",
     };
 
-    const targetCategory = category === CategoryId.ALL ? "أفكار إبداعية تربوية شاملة لطلاب القرآن" : categoryNames[category];
+    const targetCategory = category === CategoryId.ALL ? "أفكار إبداعية تربوية شاملة لحلقات القرآن" : categoryNames[category];
     const levelText = level === StudentLevel.ADULTS ? "للكبار والشباب" : "للأطفال والناشئة";
 
-    const prompt = `أعطني فكرة مهارية إبداعية وعملية ${levelText} في مجال ${targetCategory} داخل حلقات القرآن الكريم. اجعل الفكرة مدهشة ومبتكرة، سهلة التطبيق بدون ميزانية، وتترك أثراً تربوياً عميقاً.`;
+    const prompt = `ابتكر فكرة مهارية إبداعية وعملية ${levelText} في مجال ${targetCategory}. الفكرة يجب أن تكون مدهشة، سهلة التطبيق بدون تكاليف، وتترك أثراً تربوياً عميقاً في نفوس الطلاب.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
-        systemInstruction: "أنت خبير تربوي متخصص في حلقات تحفيظ القرآن الكريم. تقدم أفكاراً ذكية وجذابة بأسلوب فصيح ومؤثر.",
+        systemInstruction: "أنت خبير تربوي ملهم متخصص في حلقات تحفيظ القرآن الكريم. لغتك فصيحة، جذابة، وعملية جداً.",
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
-        thinkingConfig: { thinkingBudget: 0 } // تعطيل التفكير لسرعة الاستجابة كما هو مطلوب للمهام البسيطة
       },
     });
 
     const resultText = response.text;
-    if (!resultText) throw new Error("Empty response from AI");
+    if (!resultText) throw new Error("لم يتم تلقي استجابة من الذكاء الاصطناعي");
     
     return JSON.parse(resultText) as TeachingIdea;
   } catch (error: any) {
