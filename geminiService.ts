@@ -16,7 +16,6 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // إنشاء مثيل جديد في كل مرة لضمان قراءة المفتاح من process.env.API_KEY المحدث
   const apiKey = process.env.API_KEY;
 
   if (!apiKey || apiKey === "undefined" || apiKey === "") {
