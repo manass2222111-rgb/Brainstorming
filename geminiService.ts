@@ -16,9 +16,11 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
+  // المحاولة من process.env (Vercel) أو من الـ window إذا تم حقنه يدوياً
   const apiKey = process.env.API_KEY;
 
   if (!apiKey || apiKey === "undefined" || apiKey === "") {
+    console.error("API Key is missing from Environment Variables");
     throw new Error("API_KEY_MISSING");
   }
 
