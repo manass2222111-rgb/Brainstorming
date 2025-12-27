@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  BookOpen, 
   Sparkles, 
   RefreshCw, 
   Share2, 
@@ -11,26 +10,21 @@ import {
   Users, 
   Book,
   Wind,
-  Bookmark,
-  AlertCircle,
-  Lightbulb,
   Baby,
   User,
   Clock,
-  Target,
-  ShieldCheck,
-  Settings
+  Lightbulb
 } from 'lucide-react';
 import { CategoryId, TeachingIdea, Category, StudentLevel } from './types';
 import { generateIdea } from './geminiService';
 
 const CATEGORIES: Category[] = [
-  { id: CategoryId.ALL, label: 'أفكار منوعة', icon: <Filter size={24} />, color: 'emerald' },
-  { id: CategoryId.HIFZ, label: 'طرق حفظ', icon: <Book size={24} />, color: 'blue' },
-  { id: CategoryId.REVIEW, label: 'مراجعة وتثبيت', icon: <Brain size={24} />, color: 'purple' },
-  { id: CategoryId.MOTIVATION, label: 'تحفيز وتشجيع', icon: <Trophy size={24} />, color: 'amber' },
-  { id: CategoryId.MANAGEMENT, label: 'ضبط الحلقة', icon: <Users size={24} />, color: 'rose' },
-  { id: CategoryId.TAJWEED, label: 'تجويد وأداء', icon: <Wind size={24} />, color: 'cyan' },
+  { id: CategoryId.ALL, label: 'أفكار منوعة', icon: <Filter size={20} />, color: 'orange' },
+  { id: CategoryId.HIFZ, label: 'طرق حفظ', icon: <Book size={20} />, color: 'orange' },
+  { id: CategoryId.REVIEW, label: 'مراجعة وتثبيت', icon: <Brain size={20} />, color: 'orange' },
+  { id: CategoryId.MOTIVATION, label: 'تحفيز وتشجيع', icon: <Trophy size={20} />, color: 'orange' },
+  { id: CategoryId.MANAGEMENT, label: 'ضبط الحلقة', icon: <Users size={20} />, color: 'orange' },
+  { id: CategoryId.TAJWEED, label: 'تجويد وأداء', icon: <Wind size={20} />, color: 'orange' },
 ];
 
 const App: React.FC = () => {
@@ -40,34 +34,24 @@ const App: React.FC = () => {
   const [idea, setIdea] = useState<TeachingIdea | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [configError, setConfigError] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
-  // التأكد من أن التطبيق يعمل ولا ينهار
   useEffect(() => {
-    const key = (window as any).process?.env?.API_KEY || (process as any)?.env?.API_KEY;
-    if (!key) {
-      console.warn("API Key is missing, the app will show setup instructions if generation is attempted.");
-    }
+    setIsVisible(true);
   }, []);
 
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
-    setIdea(null); 
-    
     try {
       const newIdea = await generateIdea(selectedCategory, studentLevel);
       setIdea(newIdea);
       setTimeout(() => {
-        document.getElementById('result-area')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+        const resultSection = document.getElementById('result-section');
+        resultSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
     } catch (err: any) {
-      console.error("Generation Error:", err);
-      if (err.message === "API_KEY_MISSING") {
-        setConfigError(true);
-      } else {
-        setError('عذراً، حدث خطأ أثناء الاتصال بالخادم الذكي. يرجى التأكد من مفتاح الـ API في Vercel.');
-      }
+      setError('حدث خطأ أثناء استحضار الفكرة. يرجى المحاولة مرة أخرى.');
     } finally {
       setLoading(false);
     }
@@ -75,202 +59,204 @@ const App: React.FC = () => {
 
   const handleCopy = () => {
     if (!idea) return;
-    const text = `💡 فكرة تعليمية للحلقة: *${idea.title}*\n\n${idea.description}\n\n🌟 الفائدة: ${idea.benefit}`;
+    const text = `💡 فكرة إبداعية من مُعين المحفظ:\n\n*${idea.title}*\n\n${idea.description}\n\n🌟 الثمرة: ${idea.benefit}\n\nتم التوليد بواسطة تطبيق مُعين المحفظ الذكي.`;
     navigator.clipboard.writeText(text);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
   };
 
-  if (configError) {
-    return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-6 text-center">
-        <div className="max-w-md bg-white p-10 rounded-[2.5rem] shadow-xl border border-stone-100">
-          <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Settings className="text-amber-600 animate-spin-slow" size={40} />
-          </div>
-          <h1 className="text-2xl font-black text-[#064E3B] mb-4">تنبيه الإعدادات</h1>
-          <p className="text-stone-500 font-bold mb-8">
-            لم يتم العثور على مفتاح الـ API. تأكد من إضافته في Vercel باسم <code className="bg-stone-100 px-2 py-1 rounded">API_KEY</code> ثم عمل <code className="bg-stone-100 px-2 py-1 rounded">Redeploy</code>.
-          </p>
-          <button onClick={() => window.location.reload()} className="w-full py-4 bg-[#064E3B] text-white rounded-2xl font-black shadow-lg">إعادة المحاولة</button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex flex-col font-['Tajawal'] bg-[#FAFAF9]">
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-stone-200 px-5 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-[#064E3B] p-2.5 rounded-xl shadow-lg">
-              <BookOpen className="text-[#D4AF37]" size={24} />
-            </div>
-            <div>
-              <h1 className="text-xl font-black text-[#064E3B]">مُعين المحفظ</h1>
-              <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">الذكاء في خدمة القرآن</p>
+    <div className="min-h-screen bg-[#FDFDFB] text-[#1E293B] font-['Tajawal'] pb-10 selection:bg-[#064E3B] selection:text-white overflow-x-hidden">
+      {/* Organized White Header Box with Logo */}
+      <div className="bg-white shadow-sm border-b border-slate-100 mb-6 md:mb-8">
+        <header className={`max-w-6xl mx-auto px-6 py-4 md:px-12 flex items-center justify-start gap-5 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="relative flex-shrink-0">
+            <div className="bg-white p-1 rounded-2xl shadow-sm border border-slate-50 flex items-center justify-center overflow-hidden w-16 h-16 md:w-20 md:h-20">
+              <img 
+                src="https://www.awqaf.gov.ae/assets/mediakit/AwqafLogoIcon.png" 
+                alt="Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
           </div>
-        </div>
-      </header>
+          <div className="flex flex-col">
+            <h1 className="text-2xl md:text-4xl font-[900] text-[#064E3B] leading-none tracking-tight">مُعين المحفظ</h1>
+            <p className="text-xs md:text-lg text-[#B45309] font-bold mt-1">بنك الأفكار</p>
+          </div>
+        </header>
+      </div>
 
-      <main className="flex-grow max-w-4xl w-full mx-auto px-6 py-8">
-        <section className="text-center mb-12">
-          <h2 className="text-3xl md:text-5xl font-black text-[#064E3B] mb-6">ابتكر أسلوباً <span className="text-[#B45309]">جديداً</span> في حلقتك</h2>
-          <p className="text-stone-500 text-lg font-medium opacity-80">أفكار تربوية وتعليمية مبتكرة مدعومة بالذكاء الاصطناعي</p>
+      <main className="max-w-4xl mx-auto px-6">
+        {/* Hero Title - Forced into Single Line */}
+        <section className={`text-center mt-2 mb-8 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <h2 className="text-[1.65rem] xs:text-[2rem] sm:text-5xl md:text-7xl font-[900] text-[#064E3B] leading-tight whitespace-nowrap overflow-visible">
+            ابتكر أسلوباً <span className="text-[#B45309]">جديداً</span> في حلقتك
+          </h2>
         </section>
 
-        <section className="flex justify-center mb-10">
-          <div className="bg-white p-1.5 rounded-[2.5rem] shadow-xl flex gap-2 w-full max-w-md border border-stone-100">
+        {/* Level Switcher - Clean Tabs */}
+        <div className={`flex justify-center mb-6 transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+          <div className="bg-white rounded-[2rem] p-1.5 flex shadow-sm border border-slate-100 w-full max-w-lg relative">
             <button
               onClick={() => setStudentLevel(StudentLevel.CHILDREN)}
-              className={`flex-grow flex items-center justify-center gap-2 py-4 rounded-[2.2rem] transition-all font-black ${
-                studentLevel === StudentLevel.CHILDREN ? 'bg-[#064E3B] text-white shadow-lg' : 'text-stone-400 hover:bg-stone-50'
+              className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.6rem] text-lg md:text-xl font-bold transition-all duration-500 z-10 relative ${
+                studentLevel === StudentLevel.CHILDREN ? 'text-white' : 'text-slate-400'
               }`}
             >
-              <Baby size={20} /> حلقات الأشبال
+              <Baby size={22} /> حلقات الأشبال
             </button>
             <button
               onClick={() => setStudentLevel(StudentLevel.ADULTS)}
-              className={`flex-grow flex items-center justify-center gap-2 py-4 rounded-[2.2rem] transition-all font-black ${
-                studentLevel === StudentLevel.ADULTS ? 'bg-[#064E3B] text-white shadow-lg' : 'text-stone-400 hover:bg-stone-50'
+              className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.6rem] text-lg md:text-xl font-bold transition-all duration-500 z-10 relative ${
+                studentLevel === StudentLevel.ADULTS ? 'text-white' : 'text-slate-400'
               }`}
             >
-              <User size={20} /> حلقات الكبار
+              <User size={22} /> حلقات الكبار
             </button>
+            <div 
+              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-[#064E3B] rounded-[1.4rem] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-md ${
+                studentLevel === StudentLevel.CHILDREN ? 'right-1.5' : 'right-[50%]'
+              }`}
+            />
           </div>
-        </section>
+        </div>
 
-        <section className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-16">
-          {CATEGORIES.map((cat) => (
+        {/* Categories Grid - Elevated slightly with -translate-y-1 */}
+        <div className={`grid grid-cols-2 md:grid-cols-3 gap-4 mb-6 transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-[-4px]' : 'opacity-0 translate-y-8'}`}>
+          {CATEGORIES.map((cat, index) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`group flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] transition-all border-2 ${
-                selectedCategory === cat.id ? 'bg-white border-[#B45309] shadow-lg' : 'bg-white border-transparent hover:border-stone-100'
+              className={`flex flex-col items-center justify-center gap-3 p-6 rounded-[2rem] bg-white transition-all duration-300 border-2 active:scale-95 group ${
+                selectedCategory === cat.id 
+                  ? 'border-[#B45309] shadow-lg -translate-y-2' 
+                  : 'border-transparent shadow-sm hover:border-slate-100'
               }`}
             >
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                selectedCategory === cat.id ? 'bg-[#B45309] text-white' : 'bg-stone-50 text-stone-300'
+              <div className={`transition-all duration-500 p-3 rounded-2xl flex items-center justify-center ${
+                selectedCategory === cat.id 
+                  ? 'bg-[#B45309] text-white scale-110 rotate-[15deg] shadow-md shadow-orange-900/10' 
+                  : 'bg-slate-50 text-slate-300 group-hover:bg-slate-100 group-active:rotate-[-10deg]'
               }`}>
                 {cat.icon}
               </div>
-              <span className={`text-sm font-black ${selectedCategory === cat.id ? 'text-[#B45309]' : 'text-stone-500'}`}>
+              <span className={`text-base md:text-lg font-black transition-colors duration-300 ${selectedCategory === cat.id ? 'text-[#B45309]' : 'text-slate-400'}`}>
                 {cat.label}
               </span>
             </button>
           ))}
-        </section>
+        </div>
 
-        <div className="mb-20">
+        {/* Prominent CTA Button - Elevated slightly */}
+        <div className="relative group -translate-y-1">
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className={`w-full py-6 rounded-[2rem] text-xl font-black transition-all transform active:scale-[0.97] ${
-              loading ? 'bg-stone-200 text-stone-400 cursor-not-allowed' : 'emerald-gradient text-white shadow-xl shadow-emerald-900/20 hover:shadow-emerald-900/30'
+            className={`relative w-full py-6 rounded-3xl text-xl md:text-3xl font-black flex items-center justify-center gap-4 transition-all duration-500 shadow-2xl active:scale-[0.98] ${
+              loading 
+                ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
+                : 'bg-[#064E3B] text-white hover:bg-[#053a2b] hover:shadow-emerald-900/20'
             }`}
           >
-            <div className="flex items-center justify-center gap-3">
-              {loading ? <RefreshCw className="animate-spin" size={24} /> : <Sparkles size={24} className="text-[#D4AF37]" />}
-              <span>{loading ? 'جاري التحضير...' : 'اكتشف أسلوباً مبدعاً'}</span>
-            </div>
+            {loading ? (
+              <RefreshCw className="animate-spin" size={28} />
+            ) : (
+              <>
+                اكتشف أسلوباً مبدعاً <Sparkles className="text-yellow-400" size={28} />
+              </>
+            )}
           </button>
         </div>
 
-        <div id="result-area" className="scroll-mt-24">
+        {/* Result Area */}
+        <div id="result-section" className="mt-12 md:mt-16">
           {error && (
-            <div className="bg-red-50 border border-red-100 p-8 rounded-[2.5rem] text-red-800 text-center flex flex-col items-center gap-3">
-              <AlertCircle size={32} className="text-red-300" />
-              <p className="font-black">{error}</p>
+            <div className="bg-red-50 text-red-700 p-8 rounded-3xl text-center font-bold border border-red-100 shadow-sm">
+              {error}
             </div>
           )}
 
           {idea && !loading && (
-            <article className="animate-in fade-in slide-in-from-bottom-10 duration-700">
-              <div className="bg-white rounded-[3rem] shadow-2xl border border-stone-50 overflow-hidden">
-                <div className="p-10 md:p-16 text-right">
-                  <div className="flex flex-wrap items-center gap-4 mb-8">
-                    <span className="bg-[#B45309]/10 text-[#B45309] px-4 py-1.5 rounded-full text-sm font-black border border-[#B45309]/20 flex items-center gap-2">
-                      <Clock size={16} /> {idea.estimatedTime}
-                    </span>
-                    <span className="bg-[#064E3B]/10 text-[#064E3B] px-4 py-1.5 rounded-full text-xs font-black border border-[#064E3B]/20">
-                      {idea.category}
-                    </span>
+            <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-50 animate-in fade-in slide-in-from-bottom-10 duration-700">
+              <div className="bg-[#064E3B] p-10 md:p-16 text-white relative">
+                <div className="flex justify-between items-center mb-8">
+                  <span className="text-xs md:text-sm bg-white/10 px-5 py-2 rounded-full font-black border border-white/20 uppercase">
+                    {idea.category}
+                  </span>
+                  <div className="flex items-center gap-2 text-xs md:text-sm font-bold bg-black/20 px-4 py-2 rounded-full">
+                    <Clock size={18} /> {idea.estimatedTime}
                   </div>
-
-                  <h2 className="text-3xl md:text-4xl font-black text-[#064E3B] mb-8 leading-snug">{idea.title}</h2>
-                  
-                  <div className="relative mb-12">
-                    <div className="absolute -right-3 top-0 bottom-0 w-1.5 bg-[#D4AF37] rounded-full"></div>
-                    <p className="text-xl md:text-2xl text-stone-700 leading-relaxed font-bold pr-8 italic">{idea.description}</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
-                    <div className="lg:col-span-3 space-y-8">
-                      <h3 className="text-xs font-black text-stone-400 uppercase tracking-widest flex items-center gap-3">
-                        <Target size={20} /> خطوات التطبيق
-                      </h3>
-                      <div className="space-y-6">
-                        {idea.steps.map((step, idx) => (
-                          <div key={idx} className="flex gap-6 group">
-                            <span className="flex-shrink-0 w-12 h-12 bg-white border-2 border-[#D4AF37]/30 text-[#B45309] rounded-xl text-xl font-black flex items-center justify-center shadow-sm">
-                              {idx + 1}
-                            </span>
-                            <p className="text-stone-800 text-lg md:text-xl font-bold leading-relaxed pt-2">{step}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="lg:col-span-2 bg-[#064E3B] rounded-[2.5rem] p-10 text-white shadow-xl border-t-8 border-[#D4AF37]">
-                      <div className="flex items-center gap-3 opacity-60 mb-6 font-black text-xs tracking-widest">
-                        <Bookmark size={22} /> الثمرة التربوية
-                      </div>
-                      <p className="text-2xl font-black leading-snug text-[#D4AF37]">{idea.benefit}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-4 mt-16 pt-10 border-t border-stone-100">
-                    <button 
-                      onClick={() => {
-                        const shareText = `💡 فكرة للحلقة: *${idea.title}*\n\n${idea.description}`;
-                        window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
-                      }} 
-                      className="flex-grow py-5 emerald-gradient text-white rounded-[2rem] text-lg font-black flex items-center justify-center gap-3 shadow-lg"
-                    >
-                      <Share2 size={20} /> مشاركة الفكرة
-                    </button>
-                    <button 
-                      onClick={handleCopy} 
-                      className={`px-12 py-5 rounded-[2rem] text-lg font-black border-2 transition-all ${
-                        copySuccess ? 'bg-stone-50 text-[#064E3B] border-[#064E3B]' : 'border-stone-200 text-stone-500 hover:bg-stone-50'
-                      }`}
-                    >
-                      {copySuccess ? 'تم النسخ ✅' : 'نسخ النص'}
-                    </button>
+                </div>
+                <h3 className="text-4xl md:text-6xl font-black leading-tight mb-4">{idea.title}</h3>
+                <div className="absolute -bottom-8 right-10 md:right-16">
+                  <div className="bg-[#B45309] p-5 rounded-2xl shadow-xl ring-[8px] ring-white transform rotate-3">
+                    <Lightbulb className="text-white" size={32} />
                   </div>
                 </div>
               </div>
-            </article>
-          )}
 
-          {!idea && !loading && !error && (
-            <div className="flex flex-col items-center justify-center py-16 text-center opacity-30">
-              <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center shadow-lg border border-stone-100 mb-6">
-                 <Lightbulb size={40} className="text-[#D4AF37]" />
+              <div className="p-10 md:p-16 pt-16">
+                <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-100 mb-10">
+                  <p className="text-xl md:text-3xl text-slate-600 font-medium italic leading-relaxed text-center">
+                    "{idea.description}"
+                  </p>
+                </div>
+
+                <div className="space-y-8 mb-12">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-8 bg-[#B45309] rounded-full"></div>
+                    <h4 className="font-black text-[#064E3B] text-2xl md:text-3xl">خطة التنفيذ</h4>
+                  </div>
+                  <div className="grid gap-6">
+                    {idea.steps.map((step, i) => (
+                      <div key={i} className="flex gap-5 group">
+                        <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-[#064E3B] text-white font-black text-xl flex items-center justify-center shadow-md transition-transform group-hover:scale-110">
+                          {i + 1}
+                        </div>
+                        <p className="text-slate-500 font-bold text-lg md:text-2xl pt-2 leading-snug">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-orange-50 to-white rounded-[2.5rem] p-8 border border-orange-100 mb-12 relative overflow-hidden">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Trophy size={28} className="text-[#B45309]" />
+                    <h4 className="text-[#B45309] font-black text-sm uppercase tracking-wider">الثمرة المتوقعة</h4>
+                  </div>
+                  <p className="text-[#064E3B] font-black text-2xl md:text-4xl leading-tight">
+                    {idea.benefit}
+                  </p>
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-4">
+                  <button
+                    onClick={() => {
+                      const text = `💡 فكرة من مُعين المحفظ: *${idea.title}*\n\n${idea.description}\n\n🌟 الفائدة: ${idea.benefit}`;
+                      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                    }}
+                    className="flex-[2] bg-[#064E3B] text-white py-5 rounded-2xl font-black text-lg md:text-2xl flex items-center justify-center gap-3 hover:bg-[#053a2b] transition-all shadow-lg active:scale-95"
+                  >
+                    <Share2 size={24} /> مشاركة عبر واتساب
+                  </button>
+                  <button
+                    onClick={handleCopy}
+                    className={`flex-1 py-5 rounded-2xl font-black text-lg md:text-xl border-2 transition-all flex items-center justify-center gap-3 active:scale-95 ${
+                      copySuccess ? 'bg-emerald-50 border-emerald-200 text-emerald-600' : 'border-slate-100 text-slate-400'
+                    }`}
+                  >
+                    {copySuccess ? 'تم النسخ!' : 'نسخ النص'}
+                  </button>
+                </div>
               </div>
-              <p className="text-stone-500 font-bold text-lg max-w-md">اختر التصنيف وسنلهمك بأساليب رصينة تليق بمقام أهل القرآن.</p>
             </div>
           )}
         </div>
       </main>
 
-      <footer className="py-12 text-center bg-white border-t border-stone-100 mt-10">
-        <div className="flex items-center justify-center gap-2 text-[#064E3B] font-black text-sm mb-4">
-          <ShieldCheck size={20} className="text-[#D4AF37]" />
-          <span>من تصميم المشرف الشرعي محمد العلي</span>
-        </div>
-        <p className="text-[10px] text-stone-200 font-medium">جميع الحقوق محفوظة © ٢٠٢٥</p>
+      <footer className="mt-16 text-center opacity-30 px-6">
+        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.4em] mb-1">مُعين المحفظ • بنك الأفكار</p>
+        <p className="text-[10px] font-bold text-slate-300">نعتز بخدمة أهل القرآن الكريم • ٢٠٢٥</p>
       </footer>
     </div>
   );

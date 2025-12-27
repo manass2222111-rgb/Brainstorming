@@ -10,14 +10,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <script>
-      // تعريف كائن process لمنع انهيار المتصفح في بيئة Vercel Static
       window.process = window.process || { env: {} };
     </script>
     <style>
       body {
         font-family: 'Tajawal', sans-serif;
-        background-color: #fafaf9;
-        color: #1a202c;
+        background-color: #fdfdfb;
+        color: #1e293b;
       }
       .no-scrollbar::-webkit-scrollbar {
         display: none;
@@ -25,16 +24,6 @@
       .no-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
-      }
-      .emerald-gradient {
-        background: linear-gradient(135deg, #059669 0%, #064e3b 100%);
-      }
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-      .animate-spin-slow {
-        animation: spin 3s linear infinite;
       }
     </style>
     <script type="importmap">
@@ -51,7 +40,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- السطر التالي هو الأهم: هو الذي يقوم بتشغيل الكود البرمجي الذي كان مفقوداً -->
     <script type="module" src="./index.tsx"></script>
   </body>
 </html>

@@ -20,10 +20,7 @@ const RESPONSE_SCHEMA = {
 };
 
 export const generateIdea = async (category: CategoryId, level: StudentLevel): Promise<TeachingIdea> => {
-  // استخدام المفتاح الخاص بك مباشرة لضمان العمل الفوري
-  const apiKey = "AIzaSyBiin9_X25Poa9AJJMZYdDQ3nfuqDdt6dc";
-  
-  const ai = new GoogleGenAI({ apiKey: apiKey });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const categoryNames: Record<string, string> = {
     [CategoryId.HIFZ]: "حفظ آيات جديدة",
@@ -33,24 +30,38 @@ export const generateIdea = async (category: CategoryId, level: StudentLevel): P
     [CategoryId.TAJWEED]: "تحسين الأداء والتجويد",
   };
 
-  const targetCategory = category === CategoryId.ALL ? "فكرة تعليمية تربوية شاملة" : categoryNames[category];
+  const targetCategory = category === CategoryId.ALL ? "فكرة تعليمية شاملة في التحفيظ والإتقان" : categoryNames[category];
   const isAdult = level === StudentLevel.ADULTS;
 
-  const prompt = `أنت مساعد خبير متخصص في تعليم وتحفيظ القرآن الكريم. 
-  المطلوب: توليد أسلوب تعليمي أو تربوي "عملي وفعال" لـ ${isAdult ? "الطلاب الكبار" : "الطلاب الصغار"} في مجال: "${targetCategory}".
-  أجب بصيغة JSON فقط وباللغة العربية.`;
+  const systemInstruction = `أنت مساعد خبير تقني وتربوي متخصص حصرياً في "فن تحفيظ القرآن وإتقانه".
+  يجب عليك توليد أفكار تلتزم بدقة وبشكل صارم بالقواعد والمعايير التالية:
+
+  1- **الهدف الجوهري:** ركز حصراً على (أساليب الحفظ السريع، طرق ربط الآيات ببعضها، تقنيات الإتقان وتثبيت المحفوظ، وتعليم أحكام التجويد بطرق إبداعية).
+  2- **الاستبعاد:** لا تركز على دروس الأخلاق، أو الوعظ، أو "العمل بالقرآن"؛ هدفنا هو الجانب المهاري البحت في الحفظ والتجويد.
+  3- **سهولة التطبيق:** الأفكار يجب أن تكون سهلة التنفيذ الفوري داخل الحلقة دون تعقيد.
+  4- **ضابط التفسير:** الابتعاد تماماً عن الخوض في "تفسير القرآن الكريم" أو أي مسائل خلافية. اكتفِ فقط بالفهم العام البسيط جداً الذي يساعد على "ربط الآيات" وذهن الطالب أثناء الحفظ.
+  5- **الأدوات:** مسموح فقط بـ (أوراق، أقلام، سبورة، هواتف ذكية).
+  6- **التجدد:** يجب أن تكون الفكرة مبتكرة، خارج الصندوق، وغير مكررة تماماً.
+  7- **الفئة المستهدفة:** صِغ الفكرة بأسلوب يناسب ${isAdult ? "الكبار والبالغين" : "الأطفال والناشئة"}.`;
+
+  const prompt = `المطلوب الآن: توليد فكرة عملية ومبتكرة في مجال: "${targetCategory}".
+  تذكر: التركيز على الحفظ والربط والإتقان والتجويد فقط. أجب بصيغة JSON حصراً وباللغة العربية الفصحى الميسرة.`;
 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
       config: {
+        systemInstruction: systemInstruction,
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
+        temperature: 1, // درجة حرارة عالية لضمان التجديد والابتكار
       },
     });
 
-    return JSON.parse(response.text || "{}") as TeachingIdea;
+    const text = response.text;
+    if (!text) throw new Error("Empty response from Gemini");
+    return JSON.parse(text.trim()) as TeachingIdea;
   } catch (error: any) {
     console.error("Gemini Error:", error);
     throw error;
